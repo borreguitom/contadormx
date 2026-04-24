@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="header-doc">
+  <div class="title">Carta Encargo Profesional</div>
+  <div class="subtitle">Prestación de Servicios Contables y Fiscales</div>
+</div>
+
+<div class="lugar-fecha">{{ lugar or "Ciudad de México" }}, a {{ fecha_hoy }}</div>
+
+<p style="margin-bottom:16px;">
+  <strong>{{ cliente_nombre }}</strong><br>
+  RFC: {{ cliente_rfc }}<br>
+  P R E S E N T E
+</p>
+
+<p class="cuerpo-texto">
+Por medio de la presente, yo <strong>{{ contador_nombre }}</strong>, Contador Público con Cédula Profesional número <strong>{{ contador_cedula }}</strong>, RFC <strong>{{ contador_rfc }}</strong>, me dirijo a usted para formalizar la prestación de servicios profesionales contables y fiscales, bajo los términos y condiciones siguientes:
+</p>
+
+<div class="section-title">1. Servicios a Prestar</div>
+<div class="cuerpo-texto">{{ servicios }}</div>
+
+<div class="section-title">2. Vigencia</div>
+<div class="field-row"><span class="field-label">Fecha de inicio:</span><span class="field-value">{{ vigencia_inicio }}</span></div>
+<div class="field-row"><span class="field-label">Fecha de término:</span><span class="field-value">{{ vigencia_fin }}</span></div>
+<p style="margin-top:8px;">Cualquiera de las partes podrá dar por terminado el presente encargo mediante aviso por escrito con 30 días de anticipación.</p>
+
+<div class="section-title">3. Honorarios</div>
+<table>
+  <thead>
+    <tr><th>Concepto</th><th style="text-align:right">Importe mensual (sin IVA)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Honorarios por servicios profesionales</td>
+      <td class="amount">${{ honorarios_mensuales }}</td>
+    </tr>
+    <tr>
+      <td>IVA (16%)</td>
+      <td class="amount">${{ "%.2f"|format(honorarios_mensuales | float * 0.16) }}</td>
+    </tr>
+    <tr class="total-row">
+      <td><strong>Total mensual</strong></td>
+      <td class="amount"><strong>${{ "%.2f"|format(honorarios_mensuales | float * 1.16) }}</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-title">4. Obligaciones del Cliente</div>
+<ul style="font-size:10pt;line-height:2;padding-left:20px;">
+  <li>Proporcionar la documentación completa y verídica en tiempo y forma</li>
+  <li>Conservar los documentos originales de soporte conforme al Art. 30 CFF</li>
+  <li>Informar oportunamente sobre operaciones inusuales o de significación fiscal</li>
+  <li>Cubrir honorarios puntualmente conforme a los plazos acordados</li>
+</ul>
+
+<div class="section-title">5. Confidencialidad</div>
+<p style="font-size:10pt;line-height:1.7;">
+El Contador Público se obliga a guardar estricta confidencialidad sobre la información fiscal, financiera y contable del cliente, conforme a las disposiciones del Código de Ética Profesional del IMCP y el artículo 69 del CFF.
+</p>
+
+<p style="margin-top:24px;">
+En señal de conformidad, ambas partes firman la presente carta encargo en la ciudad y fecha indicadas.
+</p>
+
+<div class="firma-section">
+  <div class="firma-box">
+    <p>{{ cliente_nombre }}</p>
+    <p>RFC: {{ cliente_rfc }}</p>
+    <p style="font-weight:bold;margin-top:4px;">Cliente</p>
+  </div>
+  <div class="firma-box">
+    <p>{{ contador_nombre }}</p>
+    <p>Cédula: {{ contador_cedula }}</p>
+    <p style="font-weight:bold;margin-top:4px;">Contador Público</p>
+  </div>
+</div>
+
+{% endblock %}

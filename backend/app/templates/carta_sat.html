@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="header-doc">
+  <div class="title">Carta de Respuesta al SAT</div>
+  <div class="subtitle">Servicio de Administración Tributaria</div>
+</div>
+
+<div class="lugar-fecha">{{ lugar or "Ciudad de México" }}, a {{ fecha_hoy }}</div>
+
+<p style="margin-bottom:16px;">
+  <strong>Administración Desconcentrada de Servicios al Contribuyente</strong><br>
+  Servicio de Administración Tributaria<br>
+  P R E S E N T E
+</p>
+
+<p style="margin-bottom:12px;">
+  Asunto: <strong>{{ asunto }}</strong><br>
+  En respuesta al oficio número: <strong>{{ numero_oficio }}</strong> de fecha <strong>{{ fecha_oficio }}</strong>
+</p>
+
+<div class="section-title">Identificación del Contribuyente</div>
+<div class="field-row"><span class="field-label">Nombre / Razón Social:</span><span class="field-value">{{ emisor_nombre }}</span></div>
+<div class="field-row"><span class="field-label">RFC:</span><span class="field-value">{{ emisor_rfc }}</span></div>
+<div class="field-row"><span class="field-label">Domicilio Fiscal:</span><span class="field-value">{{ emisor_domicilio }}</span></div>
+
+<div class="section-title">Respuesta</div>
+<div class="cuerpo-texto">{{ cuerpo }}</div>
+
+<p style="margin-top:20px;">
+  Sin otro particular, quedo a sus órdenes para cualquier aclaración adicional.
+</p>
+
+<p style="margin-top:8px;">A T E N T A M E N T E</p>
+
+<div class="firma-section">
+  <div class="firma-box">
+    <p>{{ emisor_nombre }}</p>
+    <p>RFC: {{ emisor_rfc }}</p>
+    <p style="margin-top:4px;font-weight:bold;">Contribuyente</p>
+  </div>
+</div>
+
+<div class="nota">
+  Documento generado el {{ fecha_hoy }} mediante ContadorMX. Para mayor información comuníquese al SAT: 55 627 22 728.
+</div>
+
+{% endblock %}

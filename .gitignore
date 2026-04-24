@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+backend/venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Env files
+backend/.env
+frontend/.env.local
+.env
+
+# Uploads de usuarios (facturas, PDFs, XMLs)
+uploads/
+
+# Node
+node_modules/
+frontend/.next/
+frontend/out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log

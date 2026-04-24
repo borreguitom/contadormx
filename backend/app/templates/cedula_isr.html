@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="header-doc">
+  <div class="title">Cédula de Determinación ISR Anual — Personas Físicas</div>
+  <div class="subtitle">Artículo 150 LISR — Ejercicio Fiscal {{ ejercicio or "2025" }}</div>
+</div>
+
+<div class="section-title">Datos del Contribuyente</div>
+<div class="field-row"><span class="field-label">Nombre completo:</span><span class="field-value">{{ contribuyente_nombre }}</span></div>
+<div class="field-row"><span class="field-label">RFC:</span><span class="field-value" style="font-family:monospace;">{{ contribuyente_rfc }}</span></div>
+<div class="field-row"><span class="field-label">Régimen fiscal:</span><span class="field-value">{{ regimen }}</span></div>
+<div class="field-row"><span class="field-label">Ejercicio:</span><span class="field-value">{{ ejercicio or "2025" }}</span></div>
+
+{% set ded_aut = deducciones_autorizadas | float %}
+{% set ded_per = deducciones_personales | float %}
+{% set ingresos = ingresos_totales | float %}
+{% set base = [ingresos - ded_aut - ded_per, 0] | max %}
+{% set pp = pagos_provisionales | float %}
+{% set ret = retenciones | float %}
+
+<div class="section-title">Determinación del Impuesto</div>
+<table>
+  <thead>
+    <tr><th style="width:60%">Concepto</th><th style="width:40%;text-align:right">Importe ($)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Ingresos acumulables del ejercicio</td>
+      <td class="amount">{{ "%.2f"|format(ingresos) }}</td>
+    </tr>
+    <tr>
+      <td>Deducciones autorizadas (Art. 103/106/116 LISR)</td>
+      <td class="amount">( {{ "%.2f"|format(ded_aut) }} )</td>
+    </tr>
+    <tr>
+      <td>Deducciones personales (Art. 151 LISR)</td>
+      <td class="amount">( {{ "%.2f"|format(ded_per) }} )</td>
+    </tr>
+    <tr class="total-row">
+      <td>Base gravable</td>
+      <td class="amount">{{ "%.2f"|format(base) }}</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="font-size:9pt;color:#666;padding:4px 8px;">
+        ISR determinado aplicando tarifa anual Art. 152 LISR (ver tabla anexa)
+      </td>
+    </tr>
+    <tr>
+      <td>Pagos provisionales acreditables (Art. 106/116 LISR)</td>
+      <td class="amount">( {{ "%.2f"|format(pp) }} )</td>
+    </tr>
+    <tr>
+      <td>Retenciones de ISR del ejercicio</td>
+      <td class="amount">( {{ "%.2f"|format(ret) }} )</td>
+    </tr>
+    <tr class="total-row highlight">
+      <td><strong>IMPUESTO A CARGO (SALDO A FAVOR)</strong></td>
+      <td class="amount"><strong>Ver declaración anual SAT</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-title">Notas y Referencias Legales</div>
+<ul style="font-size:10pt;line-height:1.8;padding-left:20px;">
+  <li>Base legal: Arts. 90, 150, 151, 152 LISR y Anex. 8 RMF {{ ejercicio or "2025" }}</li>
+  <li>Plazo de presentación: 30 de abril del año siguiente al ejercicio</li>
+  <li>El contribuyente debe conservar documentación soporte por 5 años (Art. 30 CFF)</li>
+  <li>Esta cédula es un auxiliar de determinación, no sustituye la declaración en el portal SAT</li>
+</ul>
+
+<div class="firma-section">
+  <div class="firma-box">
+    <p>{{ contribuyente_nombre }}</p>
+    <p>RFC: {{ contribuyente_rfc }}</p>
+    <p style="font-weight:bold;margin-top:4px;">Contribuyente</p>
+  </div>
+  <div class="firma-box">
+    <p>Elaboró</p>
+    <p>Contador Público</p>
+    <p style="font-size:9pt;margin-top:4px;">Fecha: {{ fecha_hoy }}</p>
+  </div>
+</div>
+
+{% endblock %}

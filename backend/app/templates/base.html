@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: letter;
+    margin: 2.5cm 2.8cm 2.5cm 3cm;
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      color: #666;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    color: #111;
+    line-height: 1.5;
+  }
+  .header-doc {
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 24px;
+  }
+  .header-doc .title {
+    font-size: 13pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .header-doc .subtitle {
+    font-size: 9pt;
+    text-align: center;
+    color: #444;
+    margin-top: 3px;
+  }
+  .field-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .field-label {
+    font-weight: bold;
+    min-width: 180px;
+    color: #333;
+  }
+  .field-value { flex: 1; }
+  .section-title {
+    font-weight: bold;
+    font-size: 11pt;
+    text-transform: uppercase;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 3px;
+    margin: 16px 0 10px;
+    letter-spacing: 0.5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+    margin: 10px 0;
+  }
+  th {
+    background: #e8e8e8;
+    border: 1px solid #999;
+    padding: 5px 8px;
+    text-align: left;
+    font-size: 9pt;
+    text-transform: uppercase;
+  }
+  td {
+    border: 1px solid #bbb;
+    padding: 5px 8px;
+    vertical-align: top;
+  }
+  td.amount { text-align: right; font-family: "Courier New", monospace; }
+  .firma-section {
+    margin-top: 60px;
+    display: flex;
+    gap: 40px;
+  }
+  .firma-box {
+    flex: 1;
+    border-top: 1px solid #333;
+    padding-top: 6px;
+    text-align: center;
+    font-size: 9pt;
+  }
+  .lugar-fecha {
+    text-align: right;
+    font-size: 10pt;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  .cuerpo-texto {
+    text-align: justify;
+    line-height: 1.7;
+    margin: 12px 0;
+    white-space: pre-wrap;
+  }
+  .nota {
+    font-size: 9pt;
+    color: #555;
+    font-style: italic;
+    border-left: 3px solid #bbb;
+    padding-left: 8px;
+    margin-top: 16px;
+  }
+  .total-row td {
+    font-weight: bold;
+    background: #f0f0f0;
+  }
+  .highlight { background: #fffbe6; }
+</style>
+</head>
+<body>
+{% block content %}{% endblock %}
+</body>
+</html>

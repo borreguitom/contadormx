@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="header-doc">
+  <div class="title">Escrito de Respuesta a Requerimiento</div>
+  <div class="subtitle">Servicio de Administración Tributaria</div>
+</div>
+
+<div class="lugar-fecha">{{ lugar or "Ciudad de México" }}, a {{ fecha_hoy }}</div>
+
+<p style="margin-bottom:16px;">
+  <strong>{{ autoridad or "Administración Desconcentrada de Servicios al Contribuyente" }}</strong><br>
+  Servicio de Administración Tributaria<br>
+  P R E S E N T E
+</p>
+
+<p style="margin-bottom:12px;">
+  <strong>{{ contribuyente_nombre }}</strong>, con RFC <strong style="font-family:monospace;">{{ contribuyente_rfc }}</strong>, por propio derecho, comparezco ante esta autoridad para dar respuesta al requerimiento número <strong>{{ numero_requerimiento }}</strong> de fecha <strong>{{ fecha_requerimiento }}</strong>, bajo protesta de decir verdad, expongo lo siguiente:
+</p>
+
+<div class="section-title">Antecedentes</div>
+<p style="font-size:10pt;line-height:1.7;margin-bottom:12px;">
+  Con fecha {{ fecha_requerimiento }}, esta autoridad emitió requerimiento número <strong>{{ numero_requerimiento }}</strong> en el que se solicita información y/o documentación relacionada con mis obligaciones fiscales. En cumplimiento a lo anterior, doy respuesta en tiempo y forma conforme al artículo 33-A del Código Fiscal de la Federación.
+</p>
+
+<div class="section-title">Respuesta y Manifestaciones</div>
+<div class="cuerpo-texto">{{ respuesta }}</div>
+
+{% if documentacion_adjunta %}
+<div class="section-title">Documentación que se Acompaña</div>
+<div class="cuerpo-texto">{{ documentacion_adjunta }}</div>
+{% endif %}
+
+<div class="section-title">Fundamento Legal</div>
+<ul style="font-size:10pt;line-height:2;padding-left:20px;">
+  <li>Art. 33-A CFF — Aclaraciones ante el SAT</li>
+  <li>Art. 40 CFF — Medidas de apremio (no aplicables en respuesta voluntaria)</li>
+  <li>Art. 69-B CFF — Presunción de operaciones inexistentes (si aplica al requerimiento)</li>
+  <li>Arts. 28 y 30 CFF — Contabilidad y conservación de documentos</li>
+</ul>
+
+<p style="margin-top:16px;font-size:10pt;">
+  Lo anterior, sin perjuicio de los derechos que me asisten conforme a la Constitución Política de los Estados Unidos Mexicanos y demás disposiciones legales aplicables.
+</p>
+
+<p style="margin-top:8px;">A T E N T A M E N T E</p>
+
+<div class="firma-section">
+  <div class="firma-box">
+    <p>{{ contribuyente_nombre }}</p>
+    <p style="font-family:monospace;font-size:10pt;">{{ contribuyente_rfc }}</p>
+    <p style="font-weight:bold;margin-top:4px;">Contribuyente</p>
+  </div>
+</div>
+
+<div class="nota">
+  Escrito elaborado el {{ fecha_hoy }} mediante ContadorMX. El contribuyente es responsable del contenido y veracidad de las manifestaciones. Conservar acuse de recibo del SAT.
+</div>
+
+{% endblock %}
