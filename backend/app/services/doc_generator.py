@@ -3,7 +3,6 @@ from datetime import date
 import base64
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-import weasyprint
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
@@ -65,6 +64,7 @@ def generate_pdf(doc_type: str, data: dict) -> bytes:
     template = _env.get_template(DOC_TYPES[doc_type]["template"])
     html_str = template.render(**data, fecha_hoy=_fecha_hoy_es())
 
+    import weasyprint  # lazy — falla en Windows dev si no hay GTK, ok en Docker/Linux
     pdf_bytes = weasyprint.HTML(string=html_str, base_url=str(TEMPLATES_DIR)).write_pdf()
     return pdf_bytes
 

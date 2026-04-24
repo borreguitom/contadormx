@@ -2,7 +2,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from contextlib import asynccontextmanager
-from pathlib import Path
 import json
 
 from slowapi import _rate_limit_exceeded_handler
@@ -24,17 +23,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def _run_migrations() -> None:
-    from alembic.config import Config
-    from alembic import command
-    alembic_ini = Path(__file__).parent.parent / "alembic.ini"
-    cfg = Config(str(alembic_ini))
-    command.upgrade(cfg, "head")
-
-
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    _run_migrations()
     yield
 
 
