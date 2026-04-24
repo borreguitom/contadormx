@@ -5,7 +5,7 @@ from sqlalchemy import select
 from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime, timedelta, timezone
 from jose import jwt
-from passlib.context import CryptContext
+import bcrypt as _bcrypt
 import uuid
 
 import redis.asyncio as aioredis
@@ -16,7 +16,14 @@ from app.core.limiter import limiter
 from app.core.deps import oauth2_scheme as _oauth2_scheme
 
 router = APIRouter()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def _hash_pw(password: str) -> str:
+    return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt(12)).decode()
+
+
+def _verify_pw(password: str, hashed: str) -> bool:
+    return _bcrypt.checkpw(password.encode(), hashed.encode())
 
 RESET_TTL = 900  # 15 minutos
 
@@ -61,7 +68,7 @@ async def register(request: Request, data: RegisterRequest, db: AsyncSession = D
 
     user = User(
         email=data.email,
-        hashed_password=pwd_context.hash(data.password),
+        hashed_password=_hash_pw(data.password),
         nombre=data.nombre,
     )
     db.add(user)
@@ -86,7 +93,7 @@ async def register(request: Request, data: RegisterRequest, db: AsyncSession = D
 async def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == form.username))
     user = result.scalar_one_or_none()
-    if not user or not pwd_context.verify(form.password, user.hashed_password):
+    if not user or not _verify_pw(form.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
     return TokenResponse(access_token=create_token(user.id))
 
@@ -144,7 +151,7 @@ async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    user.hashed_password = pwd_context.hash(data.password)
+    user.hashed_password = _hash_pw(data.password)
     await db.commit()
 
     return TokenResponse(access_token=create_token(user.id))
