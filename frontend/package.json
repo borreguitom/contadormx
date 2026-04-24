@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.29",
+    "next": "^15.3.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -33,6 +33,6 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "eslint": "^9.17.0",
-    "eslint-config-next": "14.2.29"
+    "eslint-config-next": "^15.3.1"
   }
 }

@@ -85,10 +85,12 @@ if (-not $fastapiInstalled) {
 }
 
 # ── 6. Dependencias Node ──────────────────────────────────────────────────────
-if (-not (Test-Path "$ROOT\frontend\node_modules\next")) {
+$nextBin = "$ROOT\frontend\node_modules\.bin\next"
+if (-not (Test-Path $nextBin)) {
     Write-Step "Instalando dependencias Node (puede tardar 1-2 min)..."
     Push-Location "$ROOT\frontend"
-    npm install --silent
+    npm install
+    if ($LASTEXITCODE -ne 0) { Write-Fail "npm install falló. Revisa el output de arriba." }
     Pop-Location
     Write-OK "Dependencias Node instaladas"
 } else {
