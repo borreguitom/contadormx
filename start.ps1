@@ -129,7 +129,18 @@ if ($try -ge $maxTries) {
     Write-OK "PostgreSQL listo"
 }
 
-# ── 9. Backend (nueva ventana) ────────────────────────────────────────────────
+# ── 9. Limpiar procesos previos en puerto 8000 ────────────────────────────────
+$port8000 = netstat -ano 2>$null | Select-String "0.0.0.0:8000\s.*LISTENING"
+if ($port8000) {
+    $oldPid = ($port8000 | Select-Object -First 1).ToString().Trim().Split()[-1]
+    if ($oldPid -match "^\d+$") {
+        Write-Warn "Cerrando backend anterior (PID $oldPid)..."
+        (Get-WmiObject Win32_Process -Filter "ProcessId=$oldPid").Terminate() | Out-Null
+        Start-Sleep -Seconds 1
+    }
+}
+
+# ── 10. Backend (nueva ventana) ───────────────────────────────────────────────
 Write-Step "Iniciando backend FastAPI..."
 $backendCmd = @"
 title ContadorMX-Backend
