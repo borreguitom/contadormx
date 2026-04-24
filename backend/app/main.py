@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 from contextlib import asynccontextmanager
+from starlette.types import ASGIApp, Receive, Scope, Send
 import json
 
 from slowapi import _rate_limit_exceeded_handler
@@ -12,15 +12,33 @@ from app.core.limiter import limiter
 from app.api.routes import health, chat, calc, cfdi, clients, auth, laws, docs, dashboard, billing, documentos
 
 
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-        return response
+_SECURITY_HEADERS = [
+    (b"x-content-type-options", b"nosniff"),
+    (b"x-frame-options", b"DENY"),
+    (b"x-xss-protection", b"1; mode=block"),
+    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+    (b"permissions-policy", b"geolocation=(), microphone=(), camera=()"),
+]
+
+
+class SecurityHeadersMiddleware:
+    """Pure ASGI middleware — no BaseHTTPMiddleware so CORS headers survive error responses."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_sec_headers(message: dict) -> None:
+            if message["type"] == "http.response.start":
+                existing = list(message.get("headers", []))
+                message = {**message, "headers": existing + _SECURITY_HEADERS}
+            await send(message)
+
+        await self.app(scope, receive, send_with_sec_headers)
 
 
 @asynccontextmanager
