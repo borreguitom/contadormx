@@ -27,11 +27,8 @@ Agente fiscal y contable con IA para contadores mexicanos. FastAPI + Next.js 15 
 **Requisitos:** Docker Desktop, Python 3.11+, Node 18+
 
 ```powershell
-# Clona y entra al proyecto
 git clone https://github.com/borreguitom/contadormx.git
 cd contadormx
-
-# Arranca todo (Docker + backend + frontend)
 .\start.ps1
 ```
 
@@ -40,13 +37,22 @@ El script hace automáticamente:
 2. Crea `backend/.env` desde `.env.example` si no existe
 3. Crea el venv de Python e instala dependencias
 4. Instala dependencias de Node
-5. Levanta Postgres (puerto 5433), Redis (6379) y Qdrant (6333) en Docker
-6. Inicia el backend FastAPI en una ventana nueva (puerto 8000)
-7. Inicia el frontend Next.js en una ventana nueva (puerto 3000)
+5. Levanta Postgres (5433), Redis (6379) y Qdrant (6333) en Docker
+6. Inicia el backend FastAPI en ventana nueva (puerto 8000)
+7. Inicia el frontend Next.js en ventana nueva (puerto 3000)
 
-Para detener:
 ```powershell
-.\stop.ps1
+.\stop.ps1   # Para detener todo
+```
+
+**Primer uso — comandos adicionales:**
+```powershell
+# Aplicar migraciones (primera vez o después de actualizar)
+cd backend
+.\venv\Scripts\alembic upgrade head
+
+# Instalar cliente SAT (necesario para descarga masiva)
+.\venv\Scripts\pip install cfdiclient==0.1.0
 ```
 
 ---
@@ -59,7 +65,7 @@ Copia `backend/.env.example` a `backend/.env` y configura:
 # Requerido para que el chat funcione
 ANTHROPIC_API_KEY=sk-ant-api03-...
 
-# Postgres — usa puerto 5433 porque el 5432 puede estar ocupado por Postgres nativo
+# Postgres — puerto 5433 para no colisionar con Postgres nativo de Windows
 DATABASE_URL=postgresql://contadormx:contadormx_dev@localhost:5433/contadormx
 
 REDIS_URL=redis://localhost:6379/0
@@ -69,14 +75,14 @@ QDRANT_URL=http://localhost:6333
 JWT_SECRET=genera-un-secreto-aleatorio-largo-aqui
 JWT_EXPIRE_MINUTES=10080
 
-# Embeddings (elige uno)
+# Embeddings
 VOYAGE_API_KEY=pa-...
 EMBEDDING_PROVIDER=voyage
 
 # Email transaccional
 RESEND_API_KEY=re_...
 
-# Stripe (opcional para facturación)
+# Stripe (opcional)
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_PRO=price_...
@@ -95,62 +101,66 @@ APP_ENV=development
 contadormx/
 ├── backend/
 │   ├── app/
-│   │   ├── api/routes/      # Endpoints REST
-│   │   │   ├── auth.py      # Registro, login, logout, reset password
-│   │   │   ├── chat.py      # Agente fiscal (Claude + tools)
-│   │   │   ├── calc.py      # Calculadoras: ISR, IVA, IMSS, nómina, finiquito
-│   │   │   ├── cfdi.py      # Validador de CFDI XML
-│   │   │   ├── clients.py   # CRUD de clientes
-│   │   │   ├── dashboard.py # Stats del usuario
-│   │   │   ├── documentos.py# Upload/análisis de facturas + DIOT
-│   │   │   ├── laws.py      # Búsqueda semántica en leyes fiscales
-│   │   │   ├── billing.py   # Planes y checkout Stripe
-│   │   │   ├── docs.py      # Generador de documentos (PDF/DOCX)
-│   │   │   └── sat.py       # Descarga masiva de CFDIs del SAT
-│   │   ├── calculators/     # Lógica fiscal: ISR PF/PM, IVA, IMSS, nómina
+│   │   ├── api/routes/
+│   │   │   ├── auth.py          # Registro, login, logout, reset password
+│   │   │   ├── chat.py          # Agente fiscal (Claude + tools)
+│   │   │   ├── calc.py          # Calculadoras: ISR, IVA, IMSS, nómina, finiquito
+│   │   │   ├── cfdi.py          # Validador de CFDI XML
+│   │   │   ├── clients.py       # CRUD de clientes
+│   │   │   ├── dashboard.py     # Stats del usuario
+│   │   │   ├── documentos.py    # Upload/análisis de facturas + DIOT
+│   │   │   ├── empleados.py     # CRUD empleados + nómina masiva + Excel
+│   │   │   ├── laws.py          # Búsqueda semántica en leyes fiscales
+│   │   │   ├── billing.py       # Planes y checkout Stripe
+│   │   │   ├── docs.py          # Generador de documentos (PDF/DOCX)
+│   │   │   └── sat.py           # Descarga masiva de CFDIs del SAT
+│   │   ├── calculators/         # Lógica fiscal: ISR PF/PM, IVA, IMSS, nómina
 │   │   ├── core/
-│   │   │   ├── config.py    # Settings (pydantic-settings)
-│   │   │   ├── database.py  # Modelos SQLAlchemy + AsyncSession
-│   │   │   ├── deps.py      # Dependencias FastAPI (auth, límites de plan)
-│   │   │   └── limiter.py   # Rate limiting (slowapi)
-│   │   ├── scrapers/        # DOF, SAT novedades, INPC (tareas Celery)
+│   │   │   ├── config.py        # Settings (pydantic-settings)
+│   │   │   ├── database.py      # Modelos SQLAlchemy + AsyncSession
+│   │   │   ├── deps.py          # Auth, límites de plan
+│   │   │   └── limiter.py       # Rate limiting (slowapi)
+│   │   ├── scrapers/            # DOF, SAT novedades, INPC (Celery)
 │   │   ├── services/
-│   │   │   ├── agent.py     # Orquestador del agente Claude
-│   │   │   ├── crypto.py    # Fernet AES-128 para credenciales SAT
+│   │   │   ├── agent.py         # Orquestador del agente Claude
+│   │   │   ├── crypto.py        # Fernet AES-128 para credenciales SAT
 │   │   │   ├── doc_extractor.py # Extracción de datos de XML/PDF
 │   │   │   ├── doc_generator.py # Generación de PDF/DOCX con Jinja2
 │   │   │   ├── embeddings.py    # VoyageAI / OpenAI embeddings
-│   │   │   ├── rag.py       # Búsqueda semántica en Qdrant
-│   │   │   ├── sat_ws.py    # Cliente SOAP SAT (Descarga Masiva)
-│   │   │   └── tools.py     # Herramientas del agente (Claude tool_use)
+│   │   │   ├── rag.py           # Búsqueda semántica en Qdrant
+│   │   │   ├── sat_ws.py        # Cliente SOAP SAT (Descarga Masiva)
+│   │   │   └── tools.py         # Herramientas del agente (tool_use)
 │   │   └── tasks/
 │   │       ├── emails.py        # Emails transaccionales (Celery)
-│   │       ├── fiscal_reminders.py # Recordatorios de obligaciones
+│   │       ├── fiscal_reminders.py
 │   │       └── sat_download.py  # Tarea de descarga masiva SAT
-│   ├── alembic/versions/    # Migraciones de DB
-│   ├── celery_app.py        # Configuración de Celery
+│   ├── alembic/versions/        # Migraciones 001–005
+│   ├── celery_app.py
 │   └── requirements.txt
 ├── frontend/
-│   ├── app/(app)/           # Rutas autenticadas
-│   │   ├── dashboard/       # Panel principal
-│   │   ├── chat/            # Chat con el agente fiscal
-│   │   ├── clientes/        # Gestión de clientes
-│   │   ├── calculadoras/    # Calculadoras fiscales
-│   │   ├── cfdi/            # Validador de CFDI
-│   │   ├── documentos/      # Generador de documentos
-│   │   ├── sat/             # Descarga masiva SAT (e.firma)
+│   ├── app/(app)/               # Rutas autenticadas
+│   │   ├── dashboard/           # Panel principal + checklist primeros pasos
+│   │   ├── chat/                # Chat con el agente fiscal
+│   │   ├── clientes/            # Gestión de clientes
+│   │   ├── calculadoras/        # Calculadoras fiscales
+│   │   ├── cfdi/                # Validador de CFDI
+│   │   ├── documentos/          # Generador de documentos
+│   │   ├── nomina/              # Empleados + cálculo masivo + Excel
+│   │   ├── sat/                 # Descarga masiva SAT (e.firma)
 │   │   ├── declaracion-anual/
-│   │   ├── calendario/      # Calendario fiscal
-│   │   └── billing/         # Planes y suscripción
-│   ├── app/(auth)/          # Login, registro, reset
+│   │   ├── calendario/          # Calendario fiscal
+│   │   └── billing/             # Planes y suscripción
+│   ├── app/(auth)/              # Login, registro, reset password
 │   ├── components/
-│   │   └── layout/Sidebar.tsx
+│   │   ├── layout/Sidebar.tsx
+│   │   └── onboarding/
+│   │       └── OnboardingWizard.tsx   # Wizard interactivo de primer uso
 │   └── lib/
-│       ├── api.ts           # Cliente HTTP + tipos TypeScript
-│       └── auth.tsx         # Contexto de autenticación
-├── docker-compose.yml       # Postgres 16, Redis 7, Qdrant
-├── start.ps1                # Script de inicio (Windows)
-└── stop.ps1                 # Script de parada
+│       ├── api.ts               # Cliente HTTP + todos los tipos TypeScript
+│       └── auth.tsx             # Contexto de autenticación
+├── docker-compose.yml
+├── start.ps1
+└── stop.ps1
 ```
 
 ---
@@ -183,9 +193,21 @@ Documentación interactiva: `http://localhost:8000/docs`
 | POST | `/isr/personas-morales` | ISR mensual persona moral |
 | POST | `/iva` | Cálculo de IVA |
 | POST | `/imss` | Cuotas IMSS/INFONAVIT |
-| POST | `/nomina` | Nómina con retenciones |
+| POST | `/nomina` | Nómina individual con retenciones |
 | POST | `/finiquito` | Cálculo de finiquito |
 | POST | `/declaracion-anual/pf` | Declaración anual PF |
+
+### Empleados / Nómina masiva `/api/empleados`
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/template` | Descarga plantilla Excel para importar empleados |
+| GET | `/{cliente_id}` | Lista empleados activos del cliente |
+| POST | `/{cliente_id}` | Crea empleado |
+| PUT | `/{cliente_id}/{emp_id}` | Actualiza empleado |
+| DELETE | `/{cliente_id}/{emp_id}` | Baja lógica (fecha_baja + is_active=False) |
+| POST | `/{cliente_id}/import` | Importación masiva desde Excel |
+| POST | `/{cliente_id}/nomina` | Corre nómina para todos los empleados activos |
+| GET | `/{cliente_id}/nomina/excel` | Exporta nómina calculada a Excel |
 
 ### CFDI `/api/cfdi`
 | Método | Ruta | Descripción |
@@ -204,66 +226,120 @@ Documentación interactiva: `http://localhost:8000/docs`
 |---|---|---|
 | POST | `/{cliente_id}/upload` | Sube facturas (XML/PDF) |
 | GET | `/{cliente_id}` | Lista documentos del cliente |
-| GET | `/{cliente_id}/resumen` | Resumen fiscal (ingresos/egresos/IVA) |
+| GET | `/{cliente_id}/resumen` | Resumen fiscal (ingresos/egresos/IVA neto) |
 | DELETE | `/{doc_id}/documento` | Elimina documento |
 | GET | `/{cliente_id}/exportar-excel` | Exporta a Excel |
-| GET | `/{cliente_id}/diot` | Genera DIOT |
+| GET | `/{cliente_id}/diot` | Genera DIOT (JSON o TXT) |
 
 ### SAT Descarga Masiva `/api/sat`
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/credentials` | Registra e.firma (.cer + .key) |
+| POST | `/credentials` | Registra e.firma (.cer + .key) cifrada |
 | GET | `/credentials` | Lista credenciales del usuario |
 | DELETE | `/credentials/{id}` | Elimina credencial |
 | POST | `/download` | Solicita descarga masiva al SAT |
 | GET | `/jobs` | Historial de descargas |
-| GET | `/jobs/{id}` | Estado de una descarga |
-| GET | `/cfdis` | Lista CFDIs descargados |
+| GET | `/jobs/{id}` | Estado y progreso de un job |
+| GET | `/cfdis` | Lista CFDIs descargados (filtros: tipo, RFC) |
 | GET | `/cfdis/{uuid}/xml` | Descarga XML de un CFDI |
 
 ### Dashboard, Billing, Laws
-- `GET /api/dashboard/stats` — métricas del usuario
-- `GET /api/billing/status` — plan y uso
-- `POST /api/billing/checkout` — crear sesión de pago Stripe
-- `POST /api/laws/search` — búsqueda semántica en leyes fiscales
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/dashboard/stats` | Métricas del usuario (clientes, queries, obligaciones) |
+| GET | `/api/billing/status` | Plan actual y límites |
+| POST | `/api/billing/checkout` | Crear sesión de pago Stripe |
+| POST | `/api/billing/portal` | Portal de gestión Stripe |
+| POST | `/api/laws/search` | Búsqueda semántica en leyes fiscales |
+| GET | `/api/laws/recent-updates` | Últimas actualizaciones legales |
 
 ---
 
 ## Base de datos
 
-Migraciones con Alembic. Para aplicar:
+Migraciones con Alembic:
 
 ```powershell
 cd backend
 .\venv\Scripts\alembic upgrade head
 ```
 
-### Tablas principales
+### Tablas
 
-| Tabla | Descripción |
-|---|---|
-| `users` | Usuarios con plan (free/pro/agencia) y contador de queries |
-| `clientes` | Clientes del contador |
-| `conversations` | Historial de chats |
-| `messages` | Mensajes individuales con tools_used |
-| `documentos` | Facturas/CFDIs subidos por el contador |
-| `law_updates` | Artículos de leyes fiscales indexados en Qdrant |
-| `sat_credentials` | e.firma cifrada con Fernet AES-128 |
-| `sat_download_jobs` | Jobs de descarga masiva con estado y progreso |
-| `cfdi_downloaded` | CFDIs descargados del SAT con todos sus campos |
+| Tabla | Migración | Descripción |
+|---|---|---|
+| `users` | 001 | Usuarios con plan (free/pro/agencia) y contador de queries |
+| `clientes` | 001 | Clientes del contador con RFC y régimen |
+| `conversations` | 001 | Historial de chats con el agente |
+| `messages` | 001 | Mensajes individuales con tools_used |
+| `documentos` | 002 | Facturas/CFDIs subidos: datos extraídos de XML/PDF |
+| `law_updates` | 003 | Artículos de leyes fiscales indexados en Qdrant |
+| `sat_credentials` | 004 | e.firma cifrada con Fernet AES-128 |
+| `sat_download_jobs` | 004 | Jobs de descarga masiva con estado y progreso |
+| `cfdi_downloaded` | 004 | CFDIs descargados del SAT (deduplicados por UUID) |
+| `empleados` | 005 | Empleados con RFC, CURP, NSS, salario, contrato |
+
+---
+
+## Onboarding
+
+Al registrarse, el usuario ve un wizard interactivo de 4 pasos:
+
+1. **Bienvenida** — propuestas de valor principales
+2. **Rol** — contador / empresa / freelancer (personaliza el flujo)
+3. **Primer cliente** — crea el cliente directamente desde el wizard vía API
+4. **Siguiente paso** — acciones concretas según el rol: SAT, facturas, calculadora, chat
+
+El dashboard muestra un **checklist "Primeros pasos"** con barra de progreso que detecta el estado real del usuario (¿tiene clientes? ¿ha chatado?) y desaparece al completarse.
+
+Para reiniciar el wizard (desarrollo):
+```javascript
+localStorage.removeItem('cmx_onboarding_v2'); location.reload();
+```
+
+---
+
+## Nómina masiva
+
+Flujo para clientes con empleados:
+
+1. Ve a `/nomina` y selecciona el cliente
+2. Agrega empleados uno a uno **o** descarga la plantilla Excel, llénala y súbela
+3. En la pestaña "Correr Nómina": selecciona período y fechas → calcula ISR, IMSS y neto para todos los empleados activos en un solo clic
+4. Revisa el detalle por empleado y los totales (percepciones, ISR, IMSS obrero/patronal, INFONAVIT, costo empresa)
+5. Exporta a Excel con dos hojas: detalle por empleado + resumen de totales
+
+El cálculo usa salario diario × 30 como base mensual e integra automáticamente aguinaldo y vacaciones en el SDI (Art. 27 LSS).
+
+---
+
+## Descarga masiva SAT
+
+Requiere e.firma vigente (`.cer` + `.key`). Usa la API SOAP oficial del SAT.
+
+**Flujo:**
+1. Sube tu e.firma en `/sat` → se valida y guarda cifrada (nunca en texto plano)
+2. Selecciona rango de fechas (máx 1 año) y tipo de comprobante
+3. El backend encola una tarea Celery que autentica, solicita, hace polling (hasta 30 min), descarga los ZIPs y parsea cada XML CFDI 3.3/4.0
+4. Los CFDIs quedan en la BD deduplicados por UUID
+
+```powershell
+# Instalar cfdiclient (primera vez)
+.\backend\venv\Scripts\pip install cfdiclient==0.1.0
+```
 
 ---
 
 ## Seguridad
 
 - **JWT** con `jti` único + blocklist en Redis al hacer logout
-- **Rate limiting** con slowapi: 5-10 req/min en endpoints sensibles
-- **e.firma** nunca en texto plano — cifrada con Fernet (clave derivada de `JWT_SECRET` via SHA-256)
+- **Rate limiting** con slowapi: 5–10 req/min en endpoints sensibles
+- **e.firma** nunca en texto plano — Fernet AES-128, clave derivada de `JWT_SECRET` via SHA-256
 - **XML parsing** con `defusedxml` para prevenir XXE
 - **CORS** restringido a `CORS_ORIGINS`
-- **Security headers** en cada respuesta: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, etc.
+- **Security headers** en cada respuesta: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`
 - **Passwords** con bcrypt (cost factor 12)
-- **Reset tokens** consumidos atómicamente con Redis `GETDEL` (evita race condition TOCTOU)
+- **Reset tokens** consumidos atómicamente con Redis `GETDEL` (sin race condition TOCTOU)
 
 ---
 
@@ -277,53 +353,24 @@ cd backend
 
 ---
 
-## Descarga masiva SAT
-
-Requiere e.firma vigente (certificado `.cer` + llave privada `.key`).  
-Usa la API oficial SOAP del SAT (Servicio de Descarga Masiva de CFDIs).
-
-**Flujo:**
-1. Sube tu e.firma en `/sat` → se valida y guarda cifrada
-2. Selecciona rango de fechas (máx 1 año por solicitud) y tipo de comprobante
-3. El backend encola una tarea Celery que:
-   - Autentica contra el SAT (token válido ~5 min)
-   - Solicita el paquete de CFDIs
-   - Hace polling hasta que el SAT lo prepare (puede tardar minutos)
-   - Descarga los ZIPs, extrae y parsea cada XML
-   - Guarda los CFDIs en la base de datos (deduplicados por UUID)
-4. Consulta tus CFDIs descargados con filtros por tipo y RFC
-
-**Instalar cfdiclient (solo la primera vez):**
-```powershell
-.\backend\venv\Scripts\pip install cfdiclient==0.1.0
-```
-
----
-
 ## Desarrollo
 
-### Correr solo el backend
 ```powershell
+# Solo backend
 cd backend
 .\venv\Scripts\activate
 uvicorn app.main:app --reload --port 8000
-```
 
-### Correr solo el frontend
-```powershell
+# Solo frontend
 cd frontend
 npm run dev
-```
 
-### Worker Celery (para emails y descarga SAT)
-```powershell
+# Worker Celery (emails + descarga SAT)
 cd backend
 .\venv\Scripts\activate
 celery -A celery_app worker --loglevel=info
-```
 
-### Crear nueva migración
-```powershell
+# Nueva migración
 cd backend
 .\venv\Scripts\alembic revision --autogenerate -m "descripcion"
 .\venv\Scripts\alembic upgrade head
