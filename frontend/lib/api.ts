@@ -167,6 +167,42 @@ export const api = {
     },
   },
 
+  // ── SAT ───────────────────────────────────────────────────────────────────
+  sat: {
+    listCredentials: () => request<SatCredential[]>("/api/sat/credentials"),
+    deleteCredential: (id: number) =>
+      request<void>(`/api/sat/credentials/${id}`, { method: "DELETE" }),
+    requestDownload: (body: SatDownloadRequest) =>
+      request<{ job_id: number; status: string }>("/api/sat/download", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    listJobs: () => request<SatJob[]>("/api/sat/jobs"),
+    getJob: (id: number) => request<SatJob>(`/api/sat/jobs/${id}`),
+    listCfdis: (params?: { tipo?: string; rfc_contraparte?: string; limit?: number; offset?: number }) => {
+      const q = new URLSearchParams();
+      if (params?.tipo) q.set("tipo", params.tipo);
+      if (params?.rfc_contraparte) q.set("rfc_contraparte", params.rfc_contraparte);
+      if (params?.limit) q.set("limit", String(params.limit));
+      if (params?.offset) q.set("offset", String(params.offset));
+      return request<{ total: number; items: SatCfdi[] }>(`/api/sat/cfdis?${q}`);
+    },
+    uploadCredential: (form: FormData): Promise<SatCredential> => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("cmx_token") : null;
+      return fetch(`${BASE}/api/sat/credentials`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      }).then(async (r) => {
+        if (!r.ok) {
+          const b = await r.json().catch(() => ({}));
+          throw new Error(b.detail ?? `HTTP ${r.status}`);
+        }
+        return r.json();
+      });
+    },
+  },
+
   // ── Billing ───────────────────────────────────────────────────────────────
   billing: {
     status: () => request<BillingStatus>("/api/billing/status"),
@@ -313,6 +349,53 @@ export interface DiotResult {
   total_proveedores: number;
   total_operaciones: number;
   proveedores: DiotProveedor[];
+}
+
+export interface SatCredential {
+  id: number;
+  rfc: string;
+  alias: string | null;
+  valid_to: string | null;
+  created_at: string;
+}
+
+export interface SatJob {
+  id: number;
+  rfc: string;
+  status: string;
+  date_from: string;
+  date_to: string;
+  tipo_comprobante: string | null;
+  tipo_solicitud: string;
+  total_cfdi: number;
+  packages_total: number;
+  packages_downloaded: number;
+  progress: number;
+  error_msg: string | null;
+  created_at: string;
+}
+
+export interface SatCfdi {
+  id: number;
+  uuid: string;
+  rfc_emisor: string | null;
+  nombre_emisor: string | null;
+  rfc_receptor: string | null;
+  nombre_receptor: string | null;
+  total: number | null;
+  fecha_emision: string | null;
+  tipo_comprobante: string | null;
+  metodo_pago: string | null;
+  moneda: string | null;
+  estatus: string | null;
+}
+
+export interface SatDownloadRequest {
+  credential_id: number;
+  date_from: string;
+  date_to: string;
+  tipo_comprobante?: "I" | "E" | "T" | "N" | "P";
+  tipo_solicitud?: "CFDI" | "Metadata";
 }
 
 export interface ResumenFiscal {

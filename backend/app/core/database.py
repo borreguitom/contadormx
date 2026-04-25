@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, Integer, String, DateTime, Float, Text, ForeignKey, Boolean, Enum, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text, ForeignKey, Boolean, Enum, JSON, Date, Numeric, func
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import enum
@@ -142,6 +142,65 @@ class LawUpdate(Base):
     resumen = Column(Text, nullable=True)
     indexado = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class SatCredential(Base):
+    __tablename__ = "sat_credentials"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    rfc = Column(String(13), nullable=False)
+    alias = Column(String(100), default="")
+    cer_enc = Column(Text, nullable=False)
+    key_enc = Column(Text, nullable=False)
+    pwd_enc = Column(Text, nullable=False)
+    valid_to = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class SatDownloadJob(Base):
+    __tablename__ = "sat_download_jobs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    credential_id = Column(Integer, ForeignKey("sat_credentials.id"), nullable=False)
+    rfc = Column(String(13), nullable=False)
+    status = Column(String(20), default="pending")
+    sat_request_id = Column(String(50))
+    date_from = Column(Date, nullable=False)
+    date_to = Column(Date, nullable=False)
+    tipo_comprobante = Column(String(1), nullable=True)
+    tipo_solicitud = Column(String(10), default="CFDI")
+    total_cfdi = Column(Integer, default=0)
+    packages_total = Column(Integer, default=0)
+    packages_downloaded = Column(Integer, default=0)
+    error_msg = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class CfdiDownloaded(Base):
+    __tablename__ = "cfdi_downloaded"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    job_id = Column(Integer, ForeignKey("sat_download_jobs.id"), nullable=True)
+    uuid = Column(String(36), unique=True, nullable=False, index=True)
+    rfc_emisor = Column(String(13), index=True)
+    nombre_emisor = Column(String(300))
+    rfc_receptor = Column(String(13), index=True)
+    nombre_receptor = Column(String(300))
+    total = Column(Numeric(15, 2))
+    subtotal = Column(Numeric(15, 2))
+    impuestos_trasladados = Column(Numeric(15, 2))
+    fecha_emision = Column(DateTime(timezone=True))
+    fecha_timbrado = Column(DateTime(timezone=True))
+    tipo_comprobante = Column(String(1))
+    metodo_pago = Column(String(3))
+    forma_pago = Column(String(2))
+    moneda = Column(String(3), default="MXN")
+    serie = Column(String(25))
+    folio = Column(String(40))
+    xml_data = Column(Text)
+    estatus = Column(String(20), default="vigente")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 async def get_db():

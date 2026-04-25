@@ -14,6 +14,7 @@ const NAV = [
   { href: "/cfdi",               icon: "🧾", label: "Validador CFDI" },
   { href: "/calendario",         icon: "📅", label: "Calendario Fiscal" },
   { href: "/documentos",         icon: "📄", label: "Documentos" },
+  { href: "/sat",                icon: "🏛️", label: "Descarga SAT" },
 ];
 
 export default function Sidebar() {

@@ -6,7 +6,7 @@ celery_app = Celery(
     "contadormx",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.scrapers.tasks", "app.tasks.fiscal_reminders", "app.tasks.emails"],
+    include=["app.scrapers.tasks", "app.tasks.fiscal_reminders", "app.tasks.emails", "app.tasks.sat_download"],
 )
 
 celery_app.conf.update(
