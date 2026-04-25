@@ -3,6 +3,64 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
+const CHECKLIST_KEY = "cmx_checklist_dismissed";
+
+function GettingStarted({ totalClientes, totalConversaciones }: { totalClientes: number; totalConversaciones: number }) {
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem(CHECKLIST_KEY)) setDismissed(true);
+  }, []);
+
+  const steps = [
+    { done: true,                        label: "Crear tu cuenta",                href: null },
+    { done: totalClientes > 0,           label: "Agregar tu primer cliente",       href: "/clientes" },
+    { done: false,                        label: "Subir o descargar tus facturas",  href: "/documentos" },
+    { done: totalConversaciones > 0,     label: "Consultar al agente fiscal",      href: "/chat" },
+    { done: false,                        label: "Revisar tu calendario fiscal",    href: "/calendario" },
+  ];
+
+  const completedCount = steps.filter(s => s.done).length;
+  const allDone = completedCount === steps.length;
+
+  if (dismissed || allDone) return null;
+
+  return (
+    <div className="rounded-2xl border border-green-500/20 bg-green-950/20 p-5 mb-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-sm font-semibold text-green-200">Primeros pasos</h2>
+          <p className="text-xs text-gray-500 mt-0.5">{completedCount} de {steps.length} completados</p>
+        </div>
+        <button onClick={() => { localStorage.setItem(CHECKLIST_KEY, "1"); setDismissed(true); }}
+          className="text-xs text-gray-600 hover:text-gray-400 transition-colors">Ocultar</button>
+      </div>
+      <div className="h-1 rounded-full bg-white/8 mb-4 overflow-hidden">
+        <div className="h-full rounded-full bg-gradient-to-r from-green-700 to-green-400 transition-all"
+          style={{ width: `${(completedCount / steps.length) * 100}%` }} />
+      </div>
+      <div className="space-y-2">
+        {steps.map((s, i) => (
+          <div key={i} className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
+            s.done ? "opacity-50" : "hover:bg-white/3"
+          }`}>
+            <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs shrink-0 ${
+              s.done ? "bg-green-500/30 border-green-500/50 text-green-400" : "border-white/15 text-transparent"
+            }`}>✓</span>
+            {s.href && !s.done ? (
+              <Link href={s.href} className="text-sm text-gray-300 hover:text-green-300 transition-colors flex-1">
+                {s.label} <span className="text-green-500/70">→</span>
+              </Link>
+            ) : (
+              <span className={`text-sm flex-1 ${s.done ? "text-gray-500 line-through" : "text-gray-400"}`}>{s.label}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface DashboardStats {
   user_nombre: string;
   plan: string;
@@ -102,6 +160,12 @@ export default function DashboardPage() {
           </span>
         </div>
 
+        {/* Primeros pasos */}
+        <GettingStarted
+          totalClientes={stats.total_clientes}
+          totalConversaciones={stats.conversaciones_recientes.length}
+        />
+
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="rounded-2xl border border-white/8 bg-white/3 p-4">
@@ -192,10 +256,12 @@ export default function DashboardPage() {
               <h2 className="text-sm font-semibold text-green-200 mb-3">Acciones rápidas</h2>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { href: "/chat",        icon: "💬", label: "Nueva consulta" },
-                  { href: "/clientes",    icon: "👥", label: "Mis clientes" },
-                  { href: "/calculadoras",icon: "🧮", label: "Calcular ISR" },
-                  { href: "/documentos",  icon: "📄", label: "Generar PDF" },
+                  { href: "/chat",         icon: "💬", label: "Consulta fiscal" },
+                  { href: "/sat",          icon: "📥", label: "Descarga SAT" },
+                  { href: "/nomina",       icon: "💰", label: "Correr nómina" },
+                  { href: "/calculadoras", icon: "🧮", label: "Calcular ISR/IVA" },
+                  { href: "/documentos",   icon: "🧾", label: "Subir facturas" },
+                  { href: "/clientes",     icon: "👥", label: "Mis clientes" },
                 ].map(a => (
                   <Link key={a.href} href={a.href}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/8 bg-white/3 text-xs text-gray-300 hover:bg-green-500/8 hover:border-green-500/20 hover:text-green-300 transition-all">

@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
-import WelcomeBanner from "@/components/onboarding/WelcomeBanner";
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import { useAuth } from "@/lib/auth";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen" style={{ background: "#0a0f0a" }}>
-      <WelcomeBanner />
+      <OnboardingWizard />
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
     </div>
