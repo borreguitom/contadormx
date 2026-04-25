@@ -104,10 +104,11 @@ Push-Location $ROOT
 # Detecta docker compose v2 vs docker-compose v1
 docker compose version 2>$null | Out-Null
 if ($LASTEXITCODE -eq 0) {
-    docker compose up -d 2>&1 | Out-Null
+    docker compose up -d
 } else {
-    docker-compose up -d 2>&1 | Out-Null
+    docker-compose up -d
 }
+if ($LASTEXITCODE -ne 0) { Write-Fail "docker compose up falló. Verifica que Docker Desktop esté corriendo." }
 Pop-Location
 Write-OK "Postgres + Redis + Qdrant en Docker"
 
@@ -135,7 +136,7 @@ if ($port8000) {
     $oldPid = ($port8000 | Select-Object -First 1).ToString().Trim().Split()[-1]
     if ($oldPid -match "^\d+$") {
         Write-Warn "Cerrando backend anterior (PID $oldPid)..."
-        (Get-WmiObject Win32_Process -Filter "ProcessId=$oldPid").Terminate() | Out-Null
+        Stop-Process -Id ([int]$oldPid) -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 1
     }
 }
