@@ -202,8 +202,11 @@ export default function OnboardingWizard() {
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Régimen fiscal</label>
                   <select value={regimen} onChange={e => setRegimen(e.target.value)}
-                    className="w-full px-3 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-500/50 transition-colors">
-                    {REGIMENES.map(r => <option key={r} value={r}>{r}</option>)}
+                    className="w-full px-3 py-2.5 text-sm border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-500/50 transition-colors"
+                    style={{ backgroundColor: '#0d1a0d' }}>
+                    {REGIMENES.map(r => (
+                      <option key={r} value={r} style={{ backgroundColor: '#0d1a0d', color: '#fff' }}>{r}</option>
+                    ))}
                   </select>
                 </div>
               </div>

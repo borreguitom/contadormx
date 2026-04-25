@@ -353,6 +353,24 @@ Requiere e.firma vigente (`.cer` + `.key`). Usa la API SOAP oficial del SAT.
 
 ---
 
+## Usuarios de desarrollo
+
+Dos scripts de utilidad para gestionar cuentas sin tocar la BD manualmente:
+
+```powershell
+cd backend
+
+# Crear usuario admin nuevo (email: admin@contadormx.mx / Admin2025! / plan agencia)
+.\venv\Scripts\python create_admin.py
+
+# Subir cualquier cuenta existente a plan agencia (acceso total)
+.\venv\Scripts\python upgrade_plan.py tu@email.com
+```
+
+El plan `agencia` desbloquea queries ilimitadas y clientes ilimitados — útil para probar todas las funcionalidades sin restricciones del plan free.
+
+---
+
 ## Desarrollo
 
 ```powershell

@@ -104,10 +104,11 @@ export default function ClientesPage() {
                   <select
                     value={form.regimen_fiscal ?? ""}
                     onChange={set("regimen_fiscal")}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-green-50 focus:outline-none focus:border-green-500/50"
+                    className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm text-green-50 focus:outline-none focus:border-green-500/50"
+                    style={{ backgroundColor: '#0d1a0d' }}
                   >
-                    <option value="">Seleccionar…</option>
-                    {REGIMENES.map(r => <option key={r} value={r}>{r}</option>)}
+                    <option value="" style={{ backgroundColor: '#0d1a0d', color: '#fff' }}>Seleccionar…</option>
+                    {REGIMENES.map(r => <option key={r} value={r} style={{ backgroundColor: '#0d1a0d', color: '#fff' }}>{r}</option>)}
                   </select>
                 </div>
 
