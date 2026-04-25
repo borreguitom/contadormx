@@ -9,7 +9,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.limiter import limiter
-from app.api.routes import health, chat, calc, cfdi, clients, auth, laws, docs, dashboard, billing, documentos, sat
+from app.api.routes import health, chat, calc, cfdi, clients, auth, laws, docs, dashboard, billing, documentos, sat, empleados
 
 
 _SECURITY_HEADERS = [
@@ -79,3 +79,4 @@ app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"]
 app.include_router(billing.router, prefix="/api/billing", tags=["billing"])
 app.include_router(documentos.router, prefix="/api/documentos", tags=["documentos-clientes"])
 app.include_router(sat.router, prefix="/api/sat", tags=["sat"])
+app.include_router(empleados.router, prefix="/api/empleados", tags=["empleados"])

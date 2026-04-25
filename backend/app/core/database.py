@@ -203,6 +203,29 @@ class CfdiDownloaded(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Empleado(Base):
+    __tablename__ = "empleados"
+    id = Column(Integer, primary_key=True, index=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    nombre_completo = Column(String(255), nullable=False)
+    rfc = Column(String(13), nullable=True)
+    curp = Column(String(18), nullable=True)
+    nss = Column(String(11), nullable=True)
+    fecha_nacimiento = Column(Date, nullable=True)
+    fecha_alta = Column(Date, nullable=False)
+    fecha_baja = Column(Date, nullable=True)
+    tipo_contrato = Column(String(30), default="indeterminado")
+    periodicidad_pago = Column(String(20), default="quincenal")
+    salario_diario = Column(Numeric(12, 4), nullable=False)
+    departamento = Column(String(100), nullable=True)
+    puesto = Column(String(100), nullable=True)
+    banco = Column(String(50), nullable=True)
+    clabe = Column(String(18), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         try:

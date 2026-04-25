@@ -203,6 +203,56 @@ export const api = {
     },
   },
 
+  // ── Empleados / Nómina ────────────────────────────────────────────────────
+  empleados: {
+    list: (clienteId: number) =>
+      request<Empleado[]>(`/api/empleados/${clienteId}`),
+    create: (clienteId: number, data: EmpleadoCreate) =>
+      request<Empleado>(`/api/empleados/${clienteId}`, { method: "POST", body: JSON.stringify(data) }),
+    update: (clienteId: number, empId: number, data: Partial<EmpleadoCreate>) =>
+      request<Empleado>(`/api/empleados/${clienteId}/${empId}`, { method: "PUT", body: JSON.stringify(data) }),
+    delete: (clienteId: number, empId: number) =>
+      request<{ ok: boolean }>(`/api/empleados/${clienteId}/${empId}`, { method: "DELETE" }),
+    runNomina: (clienteId: number, body: NominaRunRequest) =>
+      request<NominaResult>(`/api/empleados/${clienteId}/nomina`, { method: "POST", body: JSON.stringify(body) }),
+    downloadTemplate: (): Promise<Blob> => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("cmx_token") : null;
+      return fetch(`${BASE}/api/empleados/template`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }).then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.blob();
+      });
+    },
+    importExcel: (clienteId: number, file: File): Promise<{ importados: number; errores: string[] }> => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("cmx_token") : null;
+      const form = new FormData();
+      form.append("file", file);
+      return fetch(`${BASE}/api/empleados/${clienteId}/import`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      }).then(async (r) => {
+        if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(b.detail ?? `HTTP ${r.status}`); }
+        return r.json();
+      });
+    },
+    exportNominaExcel: (clienteId: number, params: NominaRunRequest): Promise<Blob> => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("cmx_token") : null;
+      const q = new URLSearchParams({
+        periodo: params.periodo,
+        fecha_inicio: params.fecha_inicio,
+        fecha_fin: params.fecha_fin,
+      });
+      return fetch(`${BASE}/api/empleados/${clienteId}/nomina/excel?${q}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }).then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.blob();
+      });
+    },
+  },
+
   // ── Billing ───────────────────────────────────────────────────────────────
   billing: {
     status: () => request<BillingStatus>("/api/billing/status"),
@@ -349,6 +399,83 @@ export interface DiotResult {
   total_proveedores: number;
   total_operaciones: number;
   proveedores: DiotProveedor[];
+}
+
+export interface Empleado {
+  id: number;
+  cliente_id: number;
+  nombre_completo: string;
+  rfc: string | null;
+  curp: string | null;
+  nss: string | null;
+  fecha_nacimiento: string | null;
+  fecha_alta: string;
+  fecha_baja: string | null;
+  tipo_contrato: string;
+  periodicidad_pago: string;
+  salario_diario: number;
+  departamento: string | null;
+  puesto: string | null;
+  banco: string | null;
+  clabe: string | null;
+  is_active: boolean;
+}
+
+export interface EmpleadoCreate {
+  nombre_completo: string;
+  rfc?: string;
+  curp?: string;
+  nss?: string;
+  fecha_nacimiento?: string;
+  fecha_alta: string;
+  tipo_contrato?: string;
+  periodicidad_pago?: string;
+  salario_diario: number;
+  departamento?: string;
+  puesto?: string;
+  banco?: string;
+  clabe?: string;
+}
+
+export interface NominaRunRequest {
+  periodo: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  otras_percepciones_global?: number;
+  vales_despensa_global?: number;
+}
+
+export interface NominaEmpleadoResult {
+  id: number;
+  nombre_completo: string;
+  rfc: string | null;
+  nss: string | null;
+  puesto: string | null;
+  departamento: string | null;
+  salario_diario: number;
+  salario_mensual: number;
+  percepciones: Record<string, number>;
+  deducciones: Record<string, number>;
+  neto_a_pagar: number;
+  costo_empresa: Record<string, number>;
+}
+
+export interface NominaResult {
+  periodo: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  total_empleados: number;
+  totales: {
+    total_percepciones: number;
+    total_deducciones: number;
+    total_neto: number;
+    costo_total_empresa: number;
+    total_isr: number;
+    total_imss_obrero: number;
+    total_imss_patronal: number;
+    total_infonavit: number;
+  };
+  empleados: NominaEmpleadoResult[];
 }
 
 export interface SatCredential {
