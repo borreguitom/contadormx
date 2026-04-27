@@ -3,13 +3,14 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import ResultPanel from "@/components/calculadoras/ResultPanel";
 
-type Tab = "isr_pf" | "isr_pm" | "iva" | "imss" | "nomina" | "finiquito";
+type Tab = "isr_pf" | "isr_pm" | "iva" | "ieps" | "imss" | "nomina" | "finiquito";
 
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: "isr_pf",    icon: "👤", label: "ISR PF" },
   { id: "isr_pm",    icon: "🏢", label: "ISR PM" },
   { id: "iva",       icon: "🧾", label: "IVA" },
-  { id: "imss",      icon: "🏥", label: "IMSS" },
+  { id: "ieps",      icon: "🏭", label: "IEPS" },
+  { id: "imss",      icon: "🏥", label: "IMSS / INFONAVIT" },
   { id: "nomina",    icon: "💵", label: "Nómina" },
   { id: "finiquito", icon: "📄", label: "Finiquito" },
 ];
@@ -156,6 +157,89 @@ function IVAForm({ onResult, loading, setLoading, setError }: FormProps) {
   );
 }
 
+const IEPS_CATEGORIAS: { value: string; label: string; tipo: "ad_valorem" | "cuota_litro" | "ad_valorem_mas_cuota" }[] = [
+  { value: "bebidas_alcoholicas_hasta_14gl",  label: "Bebidas alcohólicas ≤14° GL (cerveza, vino) — 26.5%", tipo: "ad_valorem" },
+  { value: "bebidas_alcoholicas_mas_20gl",    label: "Bebidas alcohólicas >20° GL (destilados) — 53%",      tipo: "ad_valorem" },
+  { value: "alcohol_desnaturalizado",         label: "Alcohol / alcohol desnaturalizado — 50%",             tipo: "ad_valorem" },
+  { value: "tabacos_cigarros",                label: "Cigarros y tabacos — 160% + $0.35/cigarro",           tipo: "ad_valorem_mas_cuota" },
+  { value: "tabacos_puros",                   label: "Puros hechos a mano — 30.6%",                         tipo: "ad_valorem" },
+  { value: "bebidas_energizantes",            label: "Bebidas energizantes — 25%",                          tipo: "ad_valorem" },
+  { value: "bebidas_azucaradas",              label: "Bebidas azucaradas — $1.46/litro",                    tipo: "cuota_litro" },
+  { value: "alimentos_hcnc",                  label: "Alimentos alta densidad calórica (≥275 kcal/100g) — 8%", tipo: "ad_valorem" },
+  { value: "plaguicidas_clase_1",             label: "Plaguicidas Clase I — 9%",                            tipo: "ad_valorem" },
+  { value: "plaguicidas_clase_2",             label: "Plaguicidas Clase II — 7%",                           tipo: "ad_valorem" },
+  { value: "plaguicidas_clase_3_4",           label: "Plaguicidas Clase III-IV — 6%",                       tipo: "ad_valorem" },
+  { value: "juegos_sorteos",                  label: "Juegos con apuestas y sorteos — 30%",                 tipo: "ad_valorem" },
+  { value: "combustibles_gasolina_magna",     label: "Gasolina Magna — $5.95/litro",                       tipo: "cuota_litro" },
+  { value: "combustibles_gasolina_premium",   label: "Gasolina Premium — $5.75/litro",                     tipo: "cuota_litro" },
+  { value: "combustibles_diesel",             label: "Diésel — $6.24/litro",                               tipo: "cuota_litro" },
+];
+
+function IEPSForm({ onResult, loading, setLoading, setError }: FormProps) {
+  const [categoria, setCategoria] = useState(IEPS_CATEGORIAS[0].value);
+  const [base, setBase] = useState("10000");
+  const [litros, setLitros] = useState("100");
+  const [cigarros, setCigarros] = useState("0");
+  const [conIva, setConIva] = useState(false);
+
+  const catActual = IEPS_CATEGORIAS.find(c => c.value === categoria)!;
+
+  const calc = async () => {
+    setLoading(true); setError("");
+    try {
+      onResult(await api.calc.ieps({
+        categoria,
+        base_gravable: +base,
+        litros: +litros,
+        cantidad_cigarros: +cigarros,
+        incluye_iva: conIva,
+      }));
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error"); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="text-xs text-gray-500 bg-white/3 rounded-lg px-3 py-2 border border-white/6">
+        Art. 2 LIEPS — tasas 2025. El IEPS integra la base para IVA (Art. 18 LIVA).
+      </div>
+      <Field label="Categoría">
+        <select value={categoria} onChange={e => setCategoria(e.target.value)}
+          className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm text-green-50 focus:outline-none focus:border-green-500/40"
+          style={{ backgroundColor: "#0d1a0d" }}>
+          {IEPS_CATEGORIAS.map(c => (
+            <option key={c.value} value={c.value} style={{ backgroundColor: "#0d1a0d", color: "#fff" }}>{c.label}</option>
+          ))}
+        </select>
+      </Field>
+
+      {(catActual.tipo === "ad_valorem" || catActual.tipo === "ad_valorem_mas_cuota") && (
+        <Field label="Precio de enajenación sin IEPS ($)">
+          <NumInput value={base} onChange={setBase} />
+        </Field>
+      )}
+      {catActual.tipo === "cuota_litro" && (
+        <Field label="Litros enajenados">
+          <NumInput value={litros} onChange={setLitros} />
+        </Field>
+      )}
+      {catActual.tipo === "ad_valorem_mas_cuota" && (
+        <Field label="Cantidad de cigarros">
+          <NumInput value={cigarros} onChange={setCigarros} step="1" />
+        </Field>
+      )}
+
+      <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
+        <input type="checkbox" checked={conIva} onChange={e => setConIva(e.target.checked)}
+          className="accent-green-500 w-3.5 h-3.5" />
+        Incluir IVA 16% sobre (precio + IEPS)
+      </label>
+
+      <CalcBtn loading={loading} onClick={calc} />
+    </div>
+  );
+}
+
 function IMSSForm({ onResult, loading, setLoading, setError }: FormProps) {
   const [sdi, setSdi] = useState("500");
   const [prima, setPrima] = useState("0.0054355");
@@ -261,6 +345,7 @@ const FORMS: Record<Tab, React.ComponentType<FormProps>> = {
   isr_pf: ISRPFForm,
   isr_pm: ISRPMForm,
   iva: IVAForm,
+  ieps: IEPSForm,
   imss: IMSSForm,
   nomina: NominaForm,
   finiquito: FiniquitoForm,
@@ -283,7 +368,7 @@ export default function CalculadorasPage() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-5">
           <h1 className="text-xl font-bold text-green-100">Calculadoras Fiscales</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Tablas vigentes 2025 — ISR, IVA, IMSS, LFT</p>
+          <p className="text-sm text-gray-500 mt-0.5">Tablas vigentes 2025 — ISR, IVA, IEPS, IMSS, INFONAVIT, LFT</p>
         </div>
 
         {/* Tabs */}

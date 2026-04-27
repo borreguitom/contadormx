@@ -90,6 +90,10 @@ export const api = {
       request<Record<string, unknown>>("/api/calc/finiquito", { method: "POST", body: JSON.stringify(body) }),
     declaracionAnualPF: (body: Record<string, unknown>) =>
       request<Record<string, unknown>>("/api/calc/declaracion-anual/pf", { method: "POST", body: JSON.stringify(body) }),
+    iepsCategorias: () =>
+      request<Record<string, unknown>>("/api/calc/ieps/categorias"),
+    ieps: (body: Record<string, unknown>) =>
+      request<Record<string, unknown>>("/api/calc/ieps", { method: "POST", body: JSON.stringify(body) }),
   },
 
   // ── CFDI ─────────────────────────────────────────────────────────────────

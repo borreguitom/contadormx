@@ -12,6 +12,7 @@ from app.calculators.imss import calcular_cuotas_imss
 from app.calculators.nomina import calcular_nomina
 from app.calculators.finiquito import calcular_finiquito
 from app.calculators.declaracion_anual import calcular_declaracion_anual_pf
+from app.calculators.ieps import calcular_ieps, listar_categorias
 from app.core.deps import get_current_user
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -151,6 +152,30 @@ class DeclaracionAnualPFRequest(BaseModel):
     aportaciones_afore: float = 0.0
     colegiaturas: float = 0.0
     nivel_educativo: str = "preparatoria"
+
+
+class IEPSRequest(BaseModel):
+    categoria: str
+    base_gravable: float = 0.0
+    litros: float = 0.0
+    cantidad_cigarros: int = 0
+    incluye_iva: bool = False
+
+
+@router.get("/ieps/categorias")
+async def get_ieps_categorias():
+    return listar_categorias()
+
+
+@router.post("/ieps")
+async def calc_ieps_endpoint(req: IEPSRequest):
+    return calcular_ieps(
+        categoria=req.categoria,
+        base_gravable=req.base_gravable,
+        litros=req.litros,
+        cantidad_cigarros=req.cantidad_cigarros,
+        incluye_iva=req.incluye_iva,
+    )
 
 
 @router.post("/declaracion-anual/pf")

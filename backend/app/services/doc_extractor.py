@@ -47,6 +47,8 @@ def _empty() -> dict[str, Any]:
         "iva_trasladado": 0.0,
         "iva_retenido": 0.0,
         "isr_retenido": 0.0,
+        "ieps_trasladado": 0.0,
+        "ieps_retenido": 0.0,
         "total": None,
         "moneda": "MXN",
         "tipo_cambio": 1.0,
@@ -124,24 +126,46 @@ def extract_xml(content: bytes) -> dict[str, Any]:
     # Impuestos
     impuestos = root.find(_ns("Impuestos", cfdi_ns))
     if impuestos is not None:
-        try:
-            data["iva_trasladado"] = float(att(impuestos, "TotalImpuestosTrasladados") or 0)
-        except (ValueError, TypeError):
-            pass
-        try:
-            data["iva_retenido"] = float(att(impuestos, "TotalImpuestosRetenidos") or 0)
-        except (ValueError, TypeError):
-            pass
+        # Traslados: IVA (002) e IEPS (003)
+        traslados = impuestos.find(_ns("Traslados", cfdi_ns))
+        if traslados is not None:
+            for tr in traslados.findall(_ns("Traslado", cfdi_ns)):
+                impuesto = att(tr, "Impuesto")
+                try:
+                    importe = float(att(tr, "Importe") or 0)
+                except (ValueError, TypeError):
+                    importe = 0.0
+                if impuesto == "002":  # IVA
+                    data["iva_trasladado"] = round(data["iva_trasladado"] + importe, 2)
+                elif impuesto == "003":  # IEPS
+                    data["ieps_trasladado"] = round(data.get("ieps_trasladado", 0.0) + importe, 2)
+        else:
+            # fallback: atributo global TotalImpuestosTrasladados (puede mezclar IVA+IEPS)
+            try:
+                data["iva_trasladado"] = float(att(impuestos, "TotalImpuestosTrasladados") or 0)
+            except (ValueError, TypeError):
+                pass
 
-        # ISR retenido dentro de Retenciones
+        # Retenciones: ISR (001) e IVA retenido (002)
         retenciones = impuestos.find(_ns("Retenciones", cfdi_ns))
         if retenciones is not None:
             for ret in retenciones.findall(_ns("Retencion", cfdi_ns)):
-                if att(ret, "Impuesto") == "001":  # ISR
-                    try:
-                        data["isr_retenido"] += float(att(ret, "Importe") or 0)
-                    except (ValueError, TypeError):
-                        pass
+                impuesto = att(ret, "Impuesto")
+                try:
+                    importe = float(att(ret, "Importe") or 0)
+                except (ValueError, TypeError):
+                    importe = 0.0
+                if impuesto == "001":  # ISR
+                    data["isr_retenido"] = round(data["isr_retenido"] + importe, 2)
+                elif impuesto == "002":  # IVA retenido
+                    data["iva_retenido"] = round(data["iva_retenido"] + importe, 2)
+                elif impuesto == "003":  # IEPS retenido
+                    data["ieps_retenido"] = round(data.get("ieps_retenido", 0.0) + importe, 2)
+        else:
+            try:
+                data["iva_retenido"] = float(att(impuestos, "TotalImpuestosRetenidos") or 0)
+            except (ValueError, TypeError):
+                pass
 
     # Conceptos
     conceptos_node = root.find(_ns("Conceptos", cfdi_ns))

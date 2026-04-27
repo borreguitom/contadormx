@@ -120,6 +120,8 @@ class Documento(Base):
     iva_trasladado = Column(Float, nullable=True, default=0)
     iva_retenido = Column(Float, nullable=True, default=0)
     isr_retenido = Column(Float, nullable=True, default=0)
+    ieps_trasladado = Column(Float, nullable=True, default=0)
+    ieps_retenido = Column(Float, nullable=True, default=0)
     total = Column(Float, nullable=True)
     moneda = Column(String(10), nullable=True, default="MXN")
     tipo_cambio = Column(Float, nullable=True, default=1)
