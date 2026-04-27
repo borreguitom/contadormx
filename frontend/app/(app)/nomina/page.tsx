@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SelectInput } from "@/components/ui/SelectInput";
 import {
   api,
   type Cliente,
@@ -191,16 +192,12 @@ export default function NominaPage() {
           <h1 className="text-lg font-semibold text-white">Nómina</h1>
           <p className="text-xs text-gray-500 mt-0.5">Empleados, cálculo masivo y exportación a Excel</p>
         </div>
-        <select
-          value={clienteId}
-          onChange={e => setClienteId(e.target.value ? Number(e.target.value) : "")}
-          className="px-3 py-1.5 text-sm bg-white/5 border border-white/10 rounded-lg text-gray-300 focus:outline-none focus:border-green-500/50 min-w-[200px]"
-        >
-          <option value="">Seleccionar cliente...</option>
-          {clientes.map(c => (
-            <option key={c.id} value={c.id}>{c.razon_social}</option>
-          ))}
-        </select>
+        <SelectInput
+          value={String(clienteId)}
+          onChange={v => setClienteId(v ? Number(v) : "")}
+          options={[{ value: "", label: "Seleccionar cliente..." }, ...clientes.map(c => ({ value: String(c.id), label: c.razon_social }))]}
+          className="min-w-[200px] !rounded-lg !py-1.5"
+        />
       </div>
 
       {/* Tabs */}
@@ -305,19 +302,21 @@ export default function NominaPage() {
                     </label>
                     <label className="space-y-1">
                       <span className="text-xs text-gray-400">Periodicidad de pago</span>
-                      <select value={form.periodicidad_pago}
-                        onChange={e => setForm(f => ({ ...f, periodicidad_pago: e.target.value }))}
-                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-green-500/50">
-                        {PERIODOS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                      </select>
+                      <SelectInput
+                        value={form.periodicidad_pago ?? "quincenal"}
+                        onChange={v => setForm(f => ({ ...f, periodicidad_pago: v }))}
+                        options={PERIODOS.map(p => ({ value: p.value, label: p.label }))}
+                        className="!rounded-lg"
+                      />
                     </label>
                     <label className="space-y-1">
                       <span className="text-xs text-gray-400">Tipo de contrato</span>
-                      <select value={form.tipo_contrato}
-                        onChange={e => setForm(f => ({ ...f, tipo_contrato: e.target.value }))}
-                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-green-500/50">
-                        {CONTRATOS.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      <SelectInput
+                        value={form.tipo_contrato ?? "indeterminado"}
+                        onChange={v => setForm(f => ({ ...f, tipo_contrato: v }))}
+                        options={CONTRATOS}
+                        className="!rounded-lg"
+                      />
                     </label>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -417,11 +416,12 @@ export default function NominaPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <label className="space-y-1">
                     <span className="text-xs text-gray-400">Periodicidad</span>
-                    <select value={nomReq.periodo}
-                      onChange={e => setNomReq(r => ({ ...r, periodo: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-green-500/50">
-                      {PERIODOS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                    </select>
+                    <SelectInput
+                      value={nomReq.periodo}
+                      onChange={v => setNomReq(r => ({ ...r, periodo: v }))}
+                      options={PERIODOS.map(p => ({ value: p.value, label: p.label }))}
+                      className="!rounded-lg"
+                    />
                   </label>
                   <label className="space-y-1">
                     <span className="text-xs text-gray-400">Fecha inicio</span>

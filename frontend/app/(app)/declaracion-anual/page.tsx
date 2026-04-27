@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { SelectInput } from "@/components/ui/SelectInput";
 import { useRouter } from "next/navigation";
 
 interface DecResult {
@@ -195,15 +196,12 @@ Fundamento: ${result.fundamento}`;
               <Field label="Colegiaturas" name="colegiaturas" value={form.colegiaturas} onChange={set} />
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Nivel educativo</label>
-                <select
+                <SelectInput
                   value={form.nivel_educativo}
-                  onChange={(e) => set("nivel_educativo", e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {NIVELES.map((n) => (
-                    <option key={n.value} value={n.value}>{n.label}</option>
-                  ))}
-                </select>
+                  onChange={v => set("nivel_educativo", v)}
+                  options={NIVELES}
+                  className="!rounded-lg"
+                />
               </div>
             </div>
           </div>

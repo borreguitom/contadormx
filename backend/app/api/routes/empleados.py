@@ -114,13 +114,12 @@ async def _get_empleado_or_404(
     emp_id: int,
     cliente_id: int,
     db: AsyncSession,
+    user_id: int | None = None,
 ) -> Empleado:
-    result = await db.execute(
-        select(Empleado).where(
-            Empleado.id == emp_id,
-            Empleado.cliente_id == cliente_id,
-        )
-    )
+    conditions = [Empleado.id == emp_id, Empleado.cliente_id == cliente_id]
+    if user_id is not None:
+        conditions.append(Empleado.user_id == user_id)
+    result = await db.execute(select(Empleado).where(*conditions))
     emp = result.scalar_one_or_none()
     if not emp:
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
@@ -372,7 +371,11 @@ async def list_empleados(
 
     result = await db.execute(
         select(Empleado)
-        .where(Empleado.cliente_id == cliente_id, Empleado.is_active == True)
+        .where(
+            Empleado.cliente_id == cliente_id,
+            Empleado.user_id == current_user.id,
+            Empleado.is_active == True,
+        )
         .order_by(Empleado.nombre_completo)
     )
     return result.scalars().all()
@@ -407,7 +410,7 @@ async def update_empleado(
     current_user: User = Depends(get_current_user),
 ):
     await _get_cliente_or_404(cliente_id, current_user, db)
-    emp = await _get_empleado_or_404(emp_id, cliente_id, db)
+    emp = await _get_empleado_or_404(emp_id, cliente_id, db, current_user.id)
 
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -427,7 +430,7 @@ async def delete_empleado(
 ):
     """Soft delete: registra fecha_baja y marca is_active=False."""
     await _get_cliente_or_404(cliente_id, current_user, db)
-    emp = await _get_empleado_or_404(emp_id, cliente_id, db)
+    emp = await _get_empleado_or_404(emp_id, cliente_id, db, current_user.id)
 
     emp.fecha_baja = date.today()
     emp.is_active = False

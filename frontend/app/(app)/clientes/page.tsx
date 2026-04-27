@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, type Cliente, type ClienteCreate } from "@/lib/api";
+import { SelectInput } from "@/components/ui/SelectInput";
 
 const REGIMENES = [
   "Sueldos y Salarios",
@@ -101,15 +102,11 @@ export default function ClientesPage() {
                 ))}
                 <div>
                   <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wide">Régimen Fiscal</label>
-                  <select
+                  <SelectInput
                     value={form.regimen_fiscal ?? ""}
-                    onChange={set("regimen_fiscal")}
-                    className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm text-green-50 focus:outline-none focus:border-green-500/50"
-                    style={{ backgroundColor: '#0d1a0d' }}
-                  >
-                    <option value="" style={{ backgroundColor: '#0d1a0d', color: '#fff' }}>Seleccionar…</option>
-                    {REGIMENES.map(r => <option key={r} value={r} style={{ backgroundColor: '#0d1a0d', color: '#fff' }}>{r}</option>)}
-                  </select>
+                    onChange={v => setForm(f => ({ ...f, regimen_fiscal: v }))}
+                    options={[{ value: "", label: "Seleccionar…" }, ...REGIMENES.map(r => ({ value: r, label: r }))]}
+                  />
                 </div>
 
                 {error && <p className="text-xs text-red-400">{error}</p>}

@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, SatCredential, SatJob, SatCfdi } from "@/lib/api";
+import { SelectInput } from "@/components/ui/SelectInput";
 
 const TIPO_OPTS = [
   { value: "", label: "Todos" },
@@ -271,20 +272,21 @@ export default function SatPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <label className="space-y-1">
                       <span className="text-xs text-gray-400">e.firma</span>
-                      <select value={credId} onChange={e => setCredId(Number(e.target.value))}
-                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-green-500/50">
-                        <option value="">Seleccionar...</option>
-                        {creds.map(c => (
-                          <option key={c.id} value={c.id}>{c.alias || c.rfc}</option>
-                        ))}
-                      </select>
+                      <SelectInput
+                        value={String(credId)}
+                        onChange={v => setCredId(Number(v))}
+                        options={[{ value: "", label: "Seleccionar..." }, ...creds.map(c => ({ value: String(c.id), label: c.alias || c.rfc }))]}
+                        className="!rounded-lg"
+                      />
                     </label>
                     <label className="space-y-1">
                       <span className="text-xs text-gray-400">Tipo de comprobante</span>
-                      <select value={tipoCmp} onChange={e => setTipoCmp(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-green-500/50">
-                        {TIPO_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                      </select>
+                      <SelectInput
+                        value={tipoCmp}
+                        onChange={setTipoCmp}
+                        options={TIPO_OPTS}
+                        className="!rounded-lg"
+                      />
                     </label>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -367,10 +369,12 @@ export default function SatPage() {
         {tab === "cfdis" && (
           <>
             <div className="flex items-center gap-3">
-              <select value={cfdiTipo} onChange={e => { setCfdiTipo(e.target.value); loadCfdis(0, e.target.value); }}
-                className="px-3 py-1.5 text-xs bg-white/5 border border-white/10 rounded-lg text-gray-300 focus:outline-none focus:border-green-500/50">
-                {TIPO_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+              <SelectInput
+                value={cfdiTipo}
+                onChange={v => { setCfdiTipo(v); loadCfdis(0, v); }}
+                options={TIPO_OPTS}
+                className="!rounded-lg !py-1.5 !text-xs min-w-[140px]"
+              />
               <span className="text-xs text-gray-600">{cfdiTotal} CFDIs descargados</span>
             </div>
 

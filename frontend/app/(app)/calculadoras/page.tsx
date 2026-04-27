@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { api } from "@/lib/api";
+import { SelectInput } from "@/components/ui/SelectInput";
 import ResultPanel from "@/components/calculadoras/ResultPanel";
 
 type Tab = "isr_pf" | "isr_pm" | "iva" | "ieps" | "imss" | "nomina" | "finiquito";
@@ -37,12 +38,7 @@ function NumInput({ value, onChange, placeholder = "0", step = "any" }: {
 }
 
 function Sel({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
-  return (
-    <select value={value} onChange={e => onChange(e.target.value)}
-      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-green-50 focus:outline-none focus:border-green-500/40">
-      {options.map(o => <option key={o} value={o}>{o}</option>)}
-    </select>
-  );
+  return <SelectInput value={value} onChange={onChange} options={options} />;
 }
 
 function CalcBtn({ loading, onClick }: { loading: boolean; onClick: () => void }) {
@@ -51,6 +47,30 @@ function CalcBtn({ loading, onClick }: { loading: boolean; onClick: () => void }
       className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-700 to-green-500 text-white text-sm font-medium shadow shadow-green-900/30 hover:from-green-600 hover:to-green-400 transition-all disabled:opacity-50 mt-1">
       {loading ? "Calculando…" : "Calcular"}
     </button>
+  );
+}
+
+function TextInput({ value, onChange, placeholder = "" }: {
+  value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
+  return (
+    <input type="text" value={value} onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-green-50 focus:outline-none focus:border-green-500/40 placeholder:text-gray-600" />
+  );
+}
+
+function DateInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <input type="date" value={value} onChange={e => onChange(e.target.value)}
+      style={{ colorScheme: "dark" }}
+      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-green-50 focus:outline-none focus:border-green-500/40" />
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold text-green-400/70 uppercase tracking-wider pt-1">{children}</p>
   );
 }
 
@@ -272,15 +292,59 @@ function IMSSForm({ onResult, loading, setLoading, setError }: FormProps) {
 }
 
 function NominaForm({ onResult, loading, setLoading, setError }: FormProps) {
+  // Percepciones
   const [salario, setSalario] = useState("20000");
   const [periodo, setPeriodo] = useState("mensual");
   const [otras, setOtras] = useState("0");
   const [vales, setVales] = useState("0");
 
+  // Deducciones adicionales
+  const [infonavit, setInfonavit] = useState("0");
+  const [otrasDed, setOtrasDed] = useState("0");
+
+  // Datos del trabajador
+  const [nombre, setNombre] = useState("");
+  const [rfc, setRfc] = useState("");
+  const [nss, setNss] = useState("");
+  const [puesto, setPuesto] = useState("");
+  const [fechaIngreso, setFechaIngreso] = useState("");
+  const [numEmp, setNumEmp] = useState("");
+
+  // Datos del empleador
+  const [razonSocial, setRazonSocial] = useState("");
+  const [rfcEmp, setRfcEmp] = useState("");
+  const [domicilio, setDomicilio] = useState("");
+
+  // Período de pago
+  const [periodoInicio, setPeriodoInicio] = useState("");
+  const [periodoFin, setPeriodoFin] = useState("");
+  const [fechaPago, setFechaPago] = useState("");
+  const [numNomina, setNumNomina] = useState("");
+
   const calc = async () => {
     setLoading(true); setError("");
     try {
-      onResult(await api.calc.nomina({ salario_mensual_bruto: +salario, periodo, otras_percepciones: +otras, vales_despensa: +vales }));
+      onResult(await api.calc.nomina({
+        salario_mensual_bruto: +salario,
+        periodo,
+        otras_percepciones: +otras,
+        vales_despensa: +vales,
+        descuento_infonavit: +infonavit,
+        otras_deducciones: +otrasDed,
+        nombre_trabajador: nombre,
+        rfc_trabajador: rfc,
+        nss_trabajador: nss,
+        puesto,
+        fecha_ingreso: fechaIngreso,
+        num_empleado: numEmp,
+        razon_social_empleador: razonSocial,
+        rfc_empleador: rfcEmp,
+        domicilio_empleador: domicilio,
+        periodo_inicio: periodoInicio,
+        periodo_fin: periodoFin,
+        fecha_pago: fechaPago,
+        num_nomina: numNomina,
+      }));
     } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); }
   };
@@ -288,30 +352,167 @@ function NominaForm({ onResult, loading, setLoading, setError }: FormProps) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-gray-500 bg-white/3 rounded-lg px-3 py-2 border border-white/6">
-        Nómina completa: ISR Art. 96 LISR + subsidio al empleo + IMSS obrero Art. 25 LSS + integración SDI Art. 27 LSS
+        ISR Art. 96 LISR · Subsidio empleo · IMSS obrero Art. 25 LSS · SDI Art. 27 LSS
       </div>
-      <Field label="Salario mensual bruto ($)"><NumInput value={salario} onChange={setSalario} /></Field>
+
+      {/* ── Datos del trabajador ── */}
+      <SectionLabel>Datos del trabajador</SectionLabel>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Nombre completo">
+          <TextInput value={nombre} onChange={setNombre} placeholder="Nombre del empleado" />
+        </Field>
+        <Field label="RFC">
+          <TextInput value={rfc} onChange={setRfc} placeholder="RFC" />
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="NSS">
+          <TextInput value={nss} onChange={setNss} placeholder="Número de seguridad social" />
+        </Field>
+        <Field label="Número de empleado">
+          <TextInput value={numEmp} onChange={setNumEmp} placeholder="EMP-001" />
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Puesto / Cargo">
+          <TextInput value={puesto} onChange={setPuesto} placeholder="Ej. Contador" />
+        </Field>
+        <Field label="Fecha de ingreso">
+          <DateInput value={fechaIngreso} onChange={setFechaIngreso} />
+        </Field>
+      </div>
+
+      {/* ── Datos del empleador ── */}
+      <SectionLabel>Datos del empleador</SectionLabel>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Razón social">
+          <TextInput value={razonSocial} onChange={setRazonSocial} placeholder="Empresa SA de CV" />
+        </Field>
+        <Field label="RFC del empleador">
+          <TextInput value={rfcEmp} onChange={setRfcEmp} placeholder="RFC" />
+        </Field>
+      </div>
+      <Field label="Domicilio fiscal">
+        <TextInput value={domicilio} onChange={setDomicilio} placeholder="Calle, Colonia, Ciudad, CP" />
+      </Field>
+
+      {/* ── Período de pago ── */}
+      <SectionLabel>Período de pago</SectionLabel>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Del">
+          <DateInput value={periodoInicio} onChange={setPeriodoInicio} />
+        </Field>
+        <Field label="Al">
+          <DateInput value={periodoFin} onChange={setPeriodoFin} />
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Fecha de pago">
+          <DateInput value={fechaPago} onChange={setFechaPago} />
+        </Field>
+        <Field label="Número de nómina">
+          <TextInput value={numNomina} onChange={setNumNomina} placeholder="Ej. NOM-2025-001" />
+        </Field>
+      </div>
+
+      {/* ── Percepciones ── */}
+      <SectionLabel>Percepciones</SectionLabel>
+      <Field label="Salario mensual bruto ($)">
+        <NumInput value={salario} onChange={setSalario} />
+      </Field>
       <Field label="Periodo">
         <Sel value={periodo} onChange={setPeriodo} options={["semanal", "catorcenal", "quincenal", "mensual"]} />
       </Field>
-      <Field label="Otras percepciones (bonos, comisiones) ($)"><NumInput value={otras} onChange={setOtras} /></Field>
-      <Field label="Vales de despensa ($)"><NumInput value={vales} onChange={setVales} /></Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Otras percepciones ($)">
+          <NumInput value={otras} onChange={setOtras} placeholder="Bonos, comisiones" />
+        </Field>
+        <Field label="Vales de despensa ($)">
+          <NumInput value={vales} onChange={setVales} />
+        </Field>
+      </div>
+
+      {/* ── Deducciones adicionales ── */}
+      <SectionLabel>Deducciones adicionales</SectionLabel>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Amortización INFONAVIT ($)">
+          <NumInput value={infonavit} onChange={setInfonavit} placeholder="0 si no aplica" />
+        </Field>
+        <Field label="Otras deducciones ($)">
+          <NumInput value={otrasDed} onChange={setOtrasDed} placeholder="Préstamos, pensión, etc." />
+        </Field>
+      </div>
+
       <CalcBtn loading={loading} onClick={calc} />
     </div>
   );
 }
 
+const TIPO_SEPARACION_LABELS: Record<string, string> = {
+  renuncia: "Renuncia voluntaria",
+  despido_injustificado: "Despido injustificado",
+  despido_justificado: "Despido justificado",
+  mutuo_acuerdo: "Mutuo acuerdo",
+};
+
 function FiniquitoForm({ onResult, loading, setLoading, setError }: FormProps) {
+  // Salario y tipo
   const [sd, setSd] = useState("500");
-  const [dias, setDias] = useState("180");
-  const [anios, setAnios] = useState("2");
   const [tipo, setTipo] = useState("renuncia");
   const [vacGozadas, setVacGozadas] = useState("0");
+  const [diasPendientes, setDiasPendientes] = useState("0");
+
+  // Fechas (auto-calculan días y años)
+  const [fechaIngreso, setFechaIngreso] = useState("");
+  const [fechaSep, setFechaSep] = useState("");
+  const [fechaPago, setFechaPago] = useState("");
+
+  // Manuales (solo si no hay fechas)
+  const [diasManual, setDiasManual] = useState("180");
+  const [aniosManual, setAniosManual] = useState("2");
+
+  // Datos del trabajador
+  const [nombreTrab, setNombreTrab] = useState("");
+  const [rfcTrab, setRfcTrab] = useState("");
+  const [numEmp, setNumEmp] = useState("");
+
+  // Datos del empleador
+  const [razonSocial, setRazonSocial] = useState("");
+  const [rfcEmp, setRfcEmp] = useState("");
+
+  // Auto-cálculo desde fechas
+  const autoCalc = useMemo(() => {
+    if (!fechaIngreso || !fechaSep) return null;
+    const fi = new Date(fechaIngreso);
+    const fs = new Date(fechaSep);
+    if (isNaN(fi.getTime()) || isNaN(fs.getTime()) || fs <= fi) return null;
+    const anios = (fs.getTime() - fi.getTime()) / (365.25 * 86400000);
+    const inicioAnio = new Date(fs.getFullYear(), 0, 1);
+    const dias = Math.floor((fs.getTime() - inicioAnio.getTime()) / 86400000) + 1;
+    return { anios: anios.toFixed(2), dias: String(dias) };
+  }, [fechaIngreso, fechaSep]);
+
+  const usandoFechas = !!autoCalc;
 
   const calc = async () => {
     setLoading(true); setError("");
     try {
-      onResult(await api.calc.finiquito({ salario_diario: +sd, dias_trabajados_anio: +dias, anios_servicio: +anios, tipo_separacion: tipo, vacaciones_gozadas: +vacGozadas }));
+      onResult(await api.calc.finiquito({
+        salario_diario: +sd,
+        tipo_separacion: tipo,
+        vacaciones_gozadas: +vacGozadas,
+        dias_pendientes_pago: +diasPendientes,
+        // fechas o manual
+        ...(usandoFechas
+          ? { fecha_ingreso: fechaIngreso, fecha_separacion: fechaSep, fecha_pago: fechaPago }
+          : { dias_trabajados_anio: +diasManual, anios_servicio: +aniosManual }),
+        // datos opcionales
+        nombre_trabajador: nombreTrab,
+        rfc_trabajador: rfcTrab,
+        num_empleado: numEmp,
+        razon_social_empleador: razonSocial,
+        rfc_empleador: rfcEmp,
+      }));
     } catch (e: unknown) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); }
   };
@@ -319,16 +520,91 @@ function FiniquitoForm({ onResult, loading, setLoading, setError }: FormProps) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-gray-500 bg-white/3 rounded-lg px-3 py-2 border border-white/6">
-        Art. 76, 80, 87 LFT (vacaciones, prima vacacional, aguinaldo). Art. 50 LFT (3 meses + 20 días). Art. 162 LFT (prima antigüedad).
+        Art. 76, 80, 87 LFT · Art. 50 LFT (indemnización) · Art. 162 LFT (prima antigüedad)
       </div>
-      <Field label="Salario diario ($)"><NumInput value={sd} onChange={setSd} /></Field>
-      <Field label="Días trabajados en el año"><NumInput value={dias} onChange={setDias} step="1" /></Field>
-      <Field label="Años de antigüedad"><NumInput value={anios} onChange={setAnios} step="0.5" /></Field>
-      <Field label="Tipo de separación">
-        <Sel value={tipo} onChange={setTipo}
-          options={["renuncia", "despido_injustificado", "despido_justificado", "mutuo_acuerdo"]} />
+
+      {/* ── Sección 1: Datos del trabajador ── */}
+      <SectionLabel>Datos del trabajador</SectionLabel>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Nombre completo">
+          <TextInput value={nombreTrab} onChange={setNombreTrab} placeholder="Nombre del empleado" />
+        </Field>
+        <Field label="RFC">
+          <TextInput value={rfcTrab} onChange={setRfcTrab} placeholder="RFC" />
+        </Field>
+      </div>
+      <Field label="Número de empleado (opcional)">
+        <TextInput value={numEmp} onChange={setNumEmp} placeholder="Ej. EMP-001" />
       </Field>
-      <Field label="Vacaciones ya gozadas (días)"><NumInput value={vacGozadas} onChange={setVacGozadas} step="1" /></Field>
+
+      {/* ── Sección 2: Datos del empleador ── */}
+      <SectionLabel>Datos del empleador</SectionLabel>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Razón social">
+          <TextInput value={razonSocial} onChange={setRazonSocial} placeholder="Empresa SA de CV" />
+        </Field>
+        <Field label="RFC del empleador">
+          <TextInput value={rfcEmp} onChange={setRfcEmp} placeholder="RFC" />
+        </Field>
+      </div>
+
+      {/* ── Sección 3: Período laboral ── */}
+      <SectionLabel>Período laboral</SectionLabel>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Fecha de ingreso">
+          <DateInput value={fechaIngreso} onChange={setFechaIngreso} />
+        </Field>
+        <Field label="Fecha de separación">
+          <DateInput value={fechaSep} onChange={setFechaSep} />
+        </Field>
+      </div>
+
+      {usandoFechas ? (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+            <p className="text-xs text-gray-500 uppercase tracking-wide">Días trabajados (año)</p>
+            <p className="text-sm text-green-300 font-medium mt-0.5">{autoCalc!.dias} días</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+            <p className="text-xs text-gray-500 uppercase tracking-wide">Antigüedad</p>
+            <p className="text-sm text-green-300 font-medium mt-0.5">{autoCalc!.anios} años</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Días trabajados en el año">
+            <NumInput value={diasManual} onChange={setDiasManual} step="1" />
+          </Field>
+          <Field label="Años de antigüedad">
+            <NumInput value={aniosManual} onChange={setAniosManual} step="0.5" />
+          </Field>
+        </div>
+      )}
+
+      {/* ── Sección 4: Datos del finiquito ── */}
+      <SectionLabel>Datos del finiquito</SectionLabel>
+      <Field label="Salario diario ($)">
+        <NumInput value={sd} onChange={setSd} />
+      </Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Días pendientes de pago">
+          <NumInput value={diasPendientes} onChange={setDiasPendientes} step="1" placeholder="0" />
+        </Field>
+        <Field label="Vacaciones ya gozadas (días)">
+          <NumInput value={vacGozadas} onChange={setVacGozadas} step="1" />
+        </Field>
+      </div>
+      <Field label="Tipo de separación">
+        <SelectInput
+          value={tipo}
+          onChange={setTipo}
+          options={Object.entries(TIPO_SEPARACION_LABELS).map(([v, l]) => ({ value: v, label: l }))}
+        />
+      </Field>
+      <Field label="Fecha de pago del finiquito">
+        <DateInput value={fechaPago} onChange={setFechaPago} />
+      </Field>
+
       <CalcBtn loading={loading} onClick={calc} />
     </div>
   );
