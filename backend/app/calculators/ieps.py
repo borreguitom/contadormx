@@ -1,194 +1,274 @@
 """
-IEPS — Ley del Impuesto Especial sobre Producción y Servicios 2025.
-Tasas vigentes: Art. 2 LIEPS y sus fracciones.
+IEPS — Impuesto Especial sobre Producción y Servicios — Versión mejorada
+=========================================================================
+Soporta TODAS las categorías 2025:
+  - Bebidas alcohólicas (3 niveles según graduación)
+  - Tabacos labrados (cigarros, puros, otros)
+  - Combustibles automotrices (cuota fija por litro)
+  - Bebidas saborizadas con azúcares añadidos (cuota fija por litro)
+  - Bebidas energetizantes
+  - Alimentos no básicos alta densidad calórica (8%)
+  - Plaguicidas (3 categorías toxicidad)
+  - Juegos con apuestas y sorteos
+  - Redes públicas de telecomunicaciones
+
+Soporta cálculo de:
+  - IEPS trasladado (al vender)
+  - IEPS acreditable (al comprar)
+  - Base para IVA (precio + IEPS, Art. 18 LIVA)
 """
-from dataclasses import dataclass, field
-from typing import Literal
+from __future__ import annotations
+from dataclasses import dataclass, field, asdict
+from typing import Optional
 
-# ─── Tasas vigentes 2025 ──────────────────────────────────────────────────────
+from app.utils.constantes_fiscales import (
+    IEPS_CATEGORIAS_2025,
+    IVA_TASA_GENERAL,
+    EJERCICIO_FISCAL_VIGENTE,
+)
 
-CATEGORIAS = {
-    "bebidas_alcoholicas_hasta_14gl": {
-        "descripcion": "Bebidas alcohólicas hasta 14° GL (cerveza, sidra, vino)",
-        "tasa": 0.265,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso A) LIEPS",
-    },
-    "bebidas_alcoholicas_mas_20gl": {
-        "descripcion": "Bebidas alcohólicas más de 20° GL (destilados, licores)",
-        "tasa": 0.53,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso C) LIEPS",
-    },
-    "alcohol_desnaturalizado": {
-        "descripcion": "Alcohol etílico y alcohol desnaturalizado",
-        "tasa": 0.50,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso B) LIEPS",
-    },
-    "tabacos_cigarros": {
-        "descripcion": "Cigarros y tabacos labrados (excepto puros)",
-        "tasa": 1.60,
-        "cuota_adicional": 0.35,  # pesos por cigarro
-        "tipo": "ad_valorem_mas_cuota",
-        "fundamento": "Art. 2 Fracc. I inciso D) LIEPS",
-    },
-    "tabacos_puros": {
-        "descripcion": "Puros y otros tabacos labrados hechos enteramente a mano",
-        "tasa": 0.306,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso D) numeral 3 LIEPS",
-    },
-    "bebidas_energizantes": {
-        "descripcion": "Bebidas energizantes con cafeína, taurina, glucuronolactona",
-        "tasa": 0.25,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso G) LIEPS",
-    },
-    "bebidas_azucaradas": {
-        "descripcion": "Bebidas azucaradas (refrescos, aguas saborizadas con azúcar añadida)",
-        "tasa": None,
-        "cuota_litro": 1.46,
-        "tipo": "cuota_litro",
-        "fundamento": "Art. 2 Fracc. I inciso F) LIEPS",
-    },
-    "alimentos_hcnc": {
-        "descripcion": "Alimentos con alto contenido calórico (≥275 kcal/100g)",
-        "tasa": 0.08,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso J) LIEPS",
-    },
-    "plaguicidas_clase_1": {
-        "descripcion": "Plaguicidas toxicidad Clase I (extremadamente peligrosos)",
-        "tasa": 0.09,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso I) LIEPS",
-    },
-    "plaguicidas_clase_2": {
-        "descripcion": "Plaguicidas toxicidad Clase II (moderadamente peligrosos)",
-        "tasa": 0.07,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso I) LIEPS",
-    },
-    "plaguicidas_clase_3_4": {
-        "descripcion": "Plaguicidas toxicidad Clase III y IV (ligeramente peligrosos)",
-        "tasa": 0.06,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. I inciso I) LIEPS",
-    },
-    "juegos_sorteos": {
-        "descripcion": "Juegos con apuestas y sorteos (casinos, loterías)",
-        "tasa": 0.30,
-        "tipo": "ad_valorem",
-        "fundamento": "Art. 2 Fracc. II LIEPS",
-    },
-    "combustibles_gasolina_magna": {
-        "descripcion": "Gasolina Magna (cuota por litro, actualizable)",
-        "tasa": None,
-        "cuota_litro": 5.95,
-        "tipo": "cuota_litro",
-        "fundamento": "Art. 2-A LIEPS (cuota actualizada DOF 2025)",
-    },
-    "combustibles_gasolina_premium": {
-        "descripcion": "Gasolina Premium (cuota por litro)",
-        "tasa": None,
-        "cuota_litro": 5.75,
-        "tipo": "cuota_litro",
-        "fundamento": "Art. 2-A LIEPS (cuota actualizada DOF 2025)",
-    },
-    "combustibles_diesel": {
-        "descripcion": "Diésel (cuota por litro)",
-        "tasa": None,
-        "cuota_litro": 6.24,
-        "tipo": "cuota_litro",
-        "fundamento": "Art. 2-A LIEPS (cuota actualizada DOF 2025)",
-    },
-}
 
+# ══════════════════════════════════════════════════════════════════════════
+# Resultado estructurado
+# ══════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class ResultadoIEPS:
+    categoria: str
+    nombre_categoria: str
+    fundamento: str
+    ejercicio: int
+
+    precio_enajenacion_sin_ieps: float
+    cantidad_unidades: float
+    unidad: str
+
+    tipo_calculo: str  # 'tasa' o 'cuota_fija'
+    tasa_aplicada: Optional[float]
+    cuota_unitaria: Optional[float]
+
+    base_ieps: float
+    ieps_calculado: float
+
+    iva_aplicado: bool
+    base_iva: float
+    iva_calculado: float
+
+    precio_total_consumidor: float
+
+    desglose: dict = field(default_factory=dict)
+    advertencias: list[str] = field(default_factory=list)
+    notas: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Listar categorías disponibles
+# ══════════════════════════════════════════════════════════════════════════
+
+def listar_categorias_ieps() -> list[dict]:
+    """Devuelve lista de todas las categorías IEPS para usar en frontend."""
+    categorias = []
+    for clave, info in IEPS_CATEGORIAS_2025.items():
+        cat = {
+            "clave": clave,
+            "nombre": info["nombre"],
+            "fundamento": info["fundamento"],
+        }
+        if "tasa" in info:
+            cat["tipo"] = "tasa"
+            cat["tasa_pct"] = info["tasa"] * 100
+        if "cuota_litro" in info:
+            cat["tipo"] = "cuota_litro"
+            cat["cuota_litro"] = info["cuota_litro"]
+        if "cuota_adicional_cigarro" in info:
+            cat["cuota_adicional_cigarro"] = info["cuota_adicional_cigarro"]
+        categorias.append(cat)
+    return categorias
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Cálculo principal
+# ══════════════════════════════════════════════════════════════════════════
 
 def calcular_ieps(
     categoria: str,
-    base_gravable: float = 0.0,
-    litros: float = 0.0,
+    precio_enajenacion: float,
+    *,
+    cantidad_litros: float = 0.0,
     cantidad_cigarros: int = 0,
-    incluye_iva: bool = False,
+    incluir_iva: bool = True,
+    es_acreditable: bool = False,
 ) -> dict:
     """
-    Calcula IEPS según categoría y base gravable.
-    - Ad valorem: base_gravable en pesos (precio enajenación sin IEPS)
-    - Cuota por litro: litros consumidos/enajenados
-    - Tabacos con cuota adicional: base_gravable + cantidad_cigarros
+    Calcula IEPS según categoría.
+
+    Tipos de cálculo:
+    - Por TASA: IEPS = precio × tasa
+    - Por CUOTA FIJA: IEPS = cantidad × cuota_unitaria
+    - MIXTO (cigarros): IEPS = (precio × tasa) + (cigarros × cuota_adicional)
+
+    El IEPS forma parte de la base para calcular IVA (Art. 18 LIVA).
     """
-    if categoria not in CATEGORIAS:
+    advertencias = []
+    notas = []
+
+    # Validar categoría
+    cat_norm = categoria.lower().replace(" ", "_").replace("-", "_")
+    if cat_norm not in IEPS_CATEGORIAS_2025:
         return {
-            "error": f"Categoría '{categoria}' no reconocida.",
-            "categorias_disponibles": list(CATEGORIAS.keys()),
+            "error": True,
+            "mensaje": f"Categoría '{categoria}' no encontrada.",
+            "categorias_disponibles": list(IEPS_CATEGORIAS_2025.keys()),
         }
 
-    cat = CATEGORIAS[categoria]
-    tipo = cat["tipo"]
-    ieps = 0.0
+    info = IEPS_CATEGORIAS_2025[cat_norm]
+    nombre = info["nombre"]
+    fundamento = info["fundamento"]
+
+    # ═════════════════════════════════════════════════════════════
+    # Determinar tipo de cálculo
+    # ═════════════════════════════════════════════════════════════
+
+    ieps_calculado = 0.0
+    tipo_calculo = ""
+    tasa_aplicada = None
+    cuota_unitaria = None
+    cantidad_unidades = 0.0
+    unidad = ""
     desglose = {}
 
-    if tipo == "ad_valorem":
-        ieps = round(base_gravable * cat["tasa"], 2)
+    if "cuota_litro" in info and "tasa" not in info:
+        # Solo cuota fija por litro (combustibles, bebidas saborizadas)
+        if cantidad_litros <= 0:
+            advertencias.append(
+                f"Categoría '{nombre}' requiere especificar cantidad_litros."
+            )
+
+        cuota_unitaria = info["cuota_litro"]
+        cantidad_unidades = cantidad_litros
+        unidad = "litros"
+        ieps_calculado = round(cantidad_litros * cuota_unitaria, 2)
+        tipo_calculo = "cuota_fija_por_litro"
+
         desglose = {
-            "base_gravable": round(base_gravable, 2),
-            "tasa": f"{cat['tasa'] * 100:.1f}%",
-            "ieps_calculado": ieps,
+            "cuota_por_litro": cuota_unitaria,
+            "litros": cantidad_litros,
+            "ieps": ieps_calculado,
         }
 
-    elif tipo == "cuota_litro":
-        ieps = round(litros * cat["cuota_litro"], 2)
+    elif "tasa" in info and "cuota_adicional_cigarro" in info:
+        # Cigarros: tasa sobre precio + cuota por unidad
+        ieps_por_tasa = round(precio_enajenacion * info["tasa"], 2)
+        ieps_por_cuota = round(cantidad_cigarros * info["cuota_adicional_cigarro"], 2)
+        ieps_calculado = round(ieps_por_tasa + ieps_por_cuota, 2)
+
+        tipo_calculo = "mixto_tasa_y_cuota_unitaria"
+        tasa_aplicada = info["tasa"]
+        cuota_unitaria = info["cuota_adicional_cigarro"]
+        cantidad_unidades = cantidad_cigarros
+        unidad = "cigarros"
+
         desglose = {
-            "litros": litros,
-            "cuota_por_litro": cat["cuota_litro"],
-            "ieps_calculado": ieps,
+            "ieps_por_tasa": {
+                "tasa": info["tasa"],
+                "tasa_pct": f"{info['tasa']*100:.2f}%",
+                "base": precio_enajenacion,
+                "monto": ieps_por_tasa,
+            },
+            "ieps_por_cuota_adicional": {
+                "cuota_por_cigarro": info["cuota_adicional_cigarro"],
+                "cantidad_cigarros": cantidad_cigarros,
+                "monto": ieps_por_cuota,
+            },
+            "total": ieps_calculado,
         }
 
-    elif tipo == "ad_valorem_mas_cuota":
-        ieps_pct = round(base_gravable * cat["tasa"], 2)
-        ieps_cuota = round(cantidad_cigarros * cat["cuota_adicional"], 2)
-        ieps = round(ieps_pct + ieps_cuota, 2)
+    elif "tasa" in info:
+        # Solo tasa (alcoholes, tabaco general, plaguicidas, etc.)
+        tasa_aplicada = info["tasa"]
+        ieps_calculado = round(precio_enajenacion * tasa_aplicada, 2)
+        tipo_calculo = "tasa_porcentual"
+
         desglose = {
-            "base_gravable": round(base_gravable, 2),
-            "tasa_ad_valorem": f"{cat['tasa'] * 100:.0f}%",
-            "ieps_ad_valorem": ieps_pct,
-            "cantidad_cigarros": cantidad_cigarros,
-            "cuota_adicional_por_cigarro": cat["cuota_adicional"],
-            "ieps_cuota_adicional": ieps_cuota,
-            "ieps_total": ieps,
+            "tasa": tasa_aplicada,
+            "tasa_pct": f"{tasa_aplicada*100:.2f}%",
+            "base": precio_enajenacion,
+            "ieps": ieps_calculado,
         }
 
-    iva_sobre_ieps = 0.0
-    precio_final = round(base_gravable + ieps, 2)
-    if incluye_iva:
-        iva_sobre_ieps = round((base_gravable + ieps) * 0.16, 2)
-        precio_final = round(base_gravable + ieps + iva_sobre_ieps, 2)
+        # Si la categoría tiene cuota_litro adicional (bebidas saborizadas en algunos casos)
+        if "cuota_litro" in info and cantidad_litros > 0:
+            cuota_unitaria = info["cuota_litro"]
+            ieps_cuota = round(cantidad_litros * cuota_unitaria, 2)
+            ieps_calculado += ieps_cuota
+            desglose["ieps_cuota_litro"] = ieps_cuota
+            desglose["total"] = ieps_calculado
 
-    return {
-        "categoria": categoria,
-        "descripcion": cat["descripcion"],
-        "fundamento": cat["fundamento"],
-        "tipo_calculo": tipo,
-        "ieps": ieps,
-        "base_gravable": round(base_gravable, 2),
-        "iva_sobre_base_mas_ieps": iva_sobre_ieps if incluye_iva else "No solicitado",
-        "precio_final_con_ieps": precio_final,
-        "desglose": desglose,
-        "nota": (
-            "El IEPS forma parte de la base para IVA cuando aplica (Art. 18 LIVA). "
-            "En transferencias entre contribuyentes del mismo bien, el IEPS es acreditable (Art. 4 LIEPS)."
-        ),
-    }
+    # ═════════════════════════════════════════════════════════════
+    # Base para IVA (Art. 18 LIVA)
+    # ═════════════════════════════════════════════════════════════
 
+    base_iva = precio_enajenacion + ieps_calculado
+    iva_calculado = 0.0
 
-def listar_categorias() -> dict:
-    return {
-        k: {
-            "descripcion": v["descripcion"],
-            "tasa": f"{v['tasa']*100:.1f}%" if v.get("tasa") else f"${v.get('cuota_litro', 0):.2f}/litro",
-            "fundamento": v["fundamento"],
-        }
-        for k, v in CATEGORIAS.items()
-    }
+    if incluir_iva:
+        iva_calculado = round(base_iva * IVA_TASA_GENERAL, 2)
+        notas.append(
+            "El IEPS forma parte de la base gravable del IVA (Art. 18 LIVA)."
+        )
+
+    precio_total = round(base_iva + iva_calculado, 2)
+
+    # ═════════════════════════════════════════════════════════════
+    # Notas según categoría
+    # ═════════════════════════════════════════════════════════════
+
+    if "combustible" in cat_norm or "gasolina" in cat_norm or "diesel" in cat_norm:
+        notas.append(
+            "⛽ El IEPS de combustibles tiene cuotas fijas por litro (no porcentajes)."
+        )
+        notas.append(
+            "Las cuotas se actualizan trimestralmente por SHCP."
+        )
+
+    if "alcoholic" in cat_norm or "cerveza" in cat_norm or "destilado" in cat_norm:
+        notas.append(
+            "🍺 El IEPS de bebidas alcohólicas se traslada y entera mensualmente."
+        )
+
+    if es_acreditable:
+        notas.append(
+            "✅ IEPS acreditable: solo si fuiste contribuyente del impuesto y "
+            "el bien se utilizó en producción (Art. 4 LIEPS)."
+        )
+
+    return ResultadoIEPS(
+        categoria=cat_norm,
+        nombre_categoria=nombre,
+        fundamento=fundamento,
+        ejercicio=EJERCICIO_FISCAL_VIGENTE,
+
+        precio_enajenacion_sin_ieps=round(precio_enajenacion, 2),
+        cantidad_unidades=cantidad_unidades,
+        unidad=unidad,
+
+        tipo_calculo=tipo_calculo,
+        tasa_aplicada=tasa_aplicada,
+        cuota_unitaria=cuota_unitaria,
+
+        base_ieps=round(precio_enajenacion, 2),
+        ieps_calculado=ieps_calculado,
+
+        iva_aplicado=incluir_iva,
+        base_iva=round(base_iva, 2),
+        iva_calculado=iva_calculado,
+
+        precio_total_consumidor=precio_total,
+
+        desglose=desglose,
+        advertencias=advertencias,
+        notas=notas,
+    ).to_dict()
