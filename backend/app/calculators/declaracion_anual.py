@@ -15,14 +15,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from app.calculators.isr import TARIFA_ISR_ANUAL_2025, _aplicar_tarifa as _tarifa_isr
+from app.utils.constantes_fiscales import UMA_ANUAL
 
 
 # ── Constantes 2025 ───────────────────────────────────────────────────────────
 
-UMA_DIARIA_2025 = 108.57          # RMF 2025
-UMA_ANUAL_2025 = UMA_DIARIA_2025 * 365   # $39,628.05
-LIMITE_DEDUCCIONES_FACTOR = 0.15  # 15% del ingreso total acumulable
-LIMITE_DEDUCCIONES_UMA = 5 * UMA_ANUAL_2025  # $198,140.25
+LIMITE_DEDUCCIONES_FACTOR = 0.15          # 15% del ingreso total acumulable — Art. 151 LISR
+LIMITE_DEDUCCIONES_UMA = 5 * UMA_ANUAL   # 5 UMAs anuales — $206,629.20 (vigente feb 2025)
 
 # Colegiaturas — Art. 1.8 Decreto (límite por nivel educativo)
 LIMITE_COLEGIATURAS = {
@@ -131,7 +130,7 @@ def calcular_declaracion_anual_pf(
     donativos_aplicables = min(donativos, total_ingresos * 0.07)
 
     # AFORE: máx 10% del ingreso acumulable, máx 5 UMA anuales
-    afore_aplicables = min(aportaciones_afore, total_ingresos * 0.10, 5 * UMA_ANUAL_2025)
+    afore_aplicables = min(aportaciones_afore, total_ingresos * 0.10, 5 * UMA_ANUAL)
 
     total_deducciones_declaradas = (
         deducciones_medicas
