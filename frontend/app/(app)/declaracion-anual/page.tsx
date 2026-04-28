@@ -53,10 +53,10 @@ function Field({
         value={value}
         onChange={(e) => onChange(name, e.target.value)}
         placeholder="0.00"
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-full border border-white/10 bg-white/5 text-gray-200 rounded-lg px-3 py-2 text-sm
+                   placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
       />
-      {hint && <p className="text-xs text-gray-400 mt-0.5">{hint}</p>}
+      {hint && <p className="text-xs text-gray-500 mt-0.5">{hint}</p>}
     </div>
   );
 }
@@ -147,7 +147,7 @@ Fundamento: ${result.fundamento}`;
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Declaración Anual — Personas Físicas</h1>
+        <h1 className="text-2xl font-bold text-green-100">Declaración Anual — Personas Físicas</h1>
         <p className="text-sm text-gray-500 mt-1">
           Art. 150-152 LISR · Vencimiento: <strong>30 de abril</strong> · Tarifa anual 2025
         </p>
@@ -157,9 +157,9 @@ Fundamento: ${result.fundamento}`;
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {/* Ingresos */}
-          <div className="bg-white border rounded-xl p-5 space-y-4">
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <span className="text-green-500">↑</span> Ingresos acumulables (anuales)
+          <div className="rounded-xl border border-white/8 bg-white/3 p-5 space-y-4">
+            <h2 className="font-semibold text-green-200 flex items-center gap-2">
+              <span className="text-green-400">↑</span> Ingresos acumulables (anuales)
             </h2>
             <Field label="Sueldos y salarios" name="ingresos_sueldos" value={form.ingresos_sueldos} onChange={set} hint="Total bruto recibido del empleador" />
             <Field label="Honorarios (servicios profesionales)" name="ingresos_honorarios" value={form.ingresos_honorarios} onChange={set} />
@@ -172,9 +172,9 @@ Fundamento: ${result.fundamento}`;
 
           {/* Retenciones y pagos provisionales */}
           <div className="space-y-6">
-            <div className="bg-white border rounded-xl p-5 space-y-4">
-              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-                <span className="text-blue-500">−</span> Retenciones y pagos provisionales
+            <div className="rounded-xl border border-white/8 bg-white/3 p-5 space-y-4">
+              <h2 className="font-semibold text-green-200 flex items-center gap-2">
+                <span className="text-blue-400">−</span> Retenciones y pagos provisionales
               </h2>
               <Field label="ISR retenido por empleador" name="retenciones_sueldos" value={form.retenciones_sueldos} onChange={set} hint="Del recibo de nómina anual" />
               <Field label="Pagos provisionales enterados" name="pagos_provisionales" value={form.pagos_provisionales} onChange={set} hint="Honorarios, arrendamiento, etc." />
@@ -182,10 +182,10 @@ Fundamento: ${result.fundamento}`;
             </div>
 
             {/* Deducciones personales */}
-            <div className="bg-white border rounded-xl p-5 space-y-4">
-              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-                <span className="text-purple-500">−</span> Deducciones personales (Art. 151 LISR)
-                <span className="text-xs text-gray-400 font-normal">Límite: 15% ingreso o 5 UMA anuales</span>
+            <div className="rounded-xl border border-white/8 bg-white/3 p-5 space-y-4">
+              <h2 className="font-semibold text-green-200 flex items-center gap-2">
+                <span className="text-purple-400">−</span> Deducciones personales (Art. 151 LISR)
+                <span className="text-xs text-gray-500 font-normal">Límite: 15% ingreso o 5 UMA anuales</span>
               </h2>
               <Field label="Honorarios médicos / dentista / psicólogo" name="deducciones_medicas" value={form.deducciones_medicas} onChange={set} hint="Requiere CFDI" />
               <Field label="Gastos hospitalarios y medicamentos" name="gastos_hospitalarios" value={form.gastos_hospitalarios} onChange={set} hint="Requiere CFDI" />
@@ -195,7 +195,7 @@ Fundamento: ${result.fundamento}`;
               <Field label="Aportaciones voluntarias AFORE/SAR" name="aportaciones_afore" value={form.aportaciones_afore} onChange={set} hint="Máx. 10% del ingreso o 5 UMA anuales" />
               <Field label="Colegiaturas" name="colegiaturas" value={form.colegiaturas} onChange={set} />
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Nivel educativo</label>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Nivel educativo</label>
                 <SelectInput
                   value={form.nivel_educativo}
                   onChange={v => set("nivel_educativo", v)}
@@ -208,13 +208,13 @@ Fundamento: ${result.fundamento}`;
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>
+          <div className="bg-red-900/20 border border-red-800/40 text-red-300 rounded-lg px-4 py-3 text-sm">{error}</div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white
+          className="w-full bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white
                      py-3 rounded-xl font-semibold text-sm transition-colors"
         >
           {loading ? "Calculando..." : "Calcular Declaración Anual"}
@@ -227,38 +227,38 @@ Fundamento: ${result.fundamento}`;
           {/* Resultado principal */}
           <div className={`rounded-xl border-2 p-6 text-center ${
             result.resultado === "cargo"
-              ? "border-red-300 bg-red-50"
+              ? "border-red-800/50 bg-red-900/20"
               : result.resultado === "favor"
-              ? "border-green-300 bg-green-50"
-              : "border-gray-300 bg-gray-50"
+              ? "border-green-800/50 bg-green-900/20"
+              : "border-white/10 bg-white/5"
           }`}>
-            <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <p className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-1">
               {result.resultado === "cargo" ? "Saldo a cargo — debes pagar" :
                result.resultado === "favor" ? "Saldo a favor — devolución o compensación" :
                "Declaración en ceros"}
             </p>
             <p className={`text-4xl font-black ${
-              result.resultado === "cargo" ? "text-red-600" :
-              result.resultado === "favor" ? "text-green-600" : "text-gray-700"
+              result.resultado === "cargo" ? "text-red-400" :
+              result.resultado === "favor" ? "text-green-400" : "text-gray-300"
             }`}>
               {result.resultado === "cargo" ? fmt(result.saldo_cargo) :
                result.resultado === "favor" ? fmt(result.saldo_favor) : "$0.00"}
             </p>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               Tasa efectiva de ISR: {pct(result.tasa_efectiva)} · Régimen predominante: {result.regimen_predominante}
             </p>
           </div>
 
           {/* Desglose */}
-          <div className="bg-white border rounded-xl overflow-hidden">
+          <div className="rounded-xl border border-white/8 bg-white/3 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b">
+                <tr className="border-b border-white/8">
                   <th className="px-5 py-3 text-left text-xs text-gray-500 uppercase font-medium">Concepto</th>
                   <th className="px-5 py-3 text-right text-xs text-gray-500 uppercase font-medium">Importe</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-white/5">
                 {[
                   ["Total ingresos acumulables", result.total_ingresos_acumulables, ""],
                   ["(−) Deducciones personales aplicadas", result.deducciones_aplicables, result.total_deducciones_declaradas > result.limite_deducciones ? `Límite ${fmt(result.limite_deducciones)}` : ""],
@@ -270,14 +270,14 @@ Fundamento: ${result.fundamento}`;
                   ["= " + (result.resultado === "cargo" ? "Impuesto a pagar" : "Saldo a favor"),
                    result.resultado === "cargo" ? result.saldo_cargo : result.saldo_favor, "bold"],
                 ].map(([label, value, extra], i) => (
-                  <tr key={i} className={String(extra) === "bold" ? "bg-gray-50" : ""}>
-                    <td className={`px-5 py-3 text-gray-700 ${String(extra) === "bold" ? "font-semibold" : ""}`}>
+                  <tr key={i} className={String(extra) === "bold" ? "bg-white/3" : ""}>
+                    <td className={`px-5 py-3 text-gray-400 ${String(extra) === "bold" ? "font-semibold text-gray-200" : ""}`}>
                       {String(label)}
                       {extra && extra !== "bold" && (
-                        <span className="ml-2 text-xs text-orange-500">{String(extra)}</span>
+                        <span className="ml-2 text-xs text-orange-400">{String(extra)}</span>
                       )}
                     </td>
-                    <td className={`px-5 py-3 text-right font-mono ${String(extra) === "bold" ? "font-bold text-gray-900" : "text-gray-700"}`}>
+                    <td className={`px-5 py-3 text-right font-mono ${String(extra) === "bold" ? "font-bold text-green-200" : "text-gray-300"}`}>
                       {fmt(Number(value))}
                     </td>
                   </tr>
@@ -286,11 +286,11 @@ Fundamento: ${result.fundamento}`;
             </table>
           </div>
 
-          <p className="text-xs text-gray-400 px-1">{result.fundamento}</p>
+          <p className="text-xs text-gray-500 px-1">{result.fundamento}</p>
 
           <button
             onClick={sendToAgent}
-            className="w-full border border-blue-200 text-blue-600 hover:bg-blue-50
+            className="w-full border border-green-800/40 text-green-400 hover:bg-green-500/8
                        py-3 rounded-xl font-medium text-sm transition-colors"
           >
             💬 Analizar con el agente fiscal
