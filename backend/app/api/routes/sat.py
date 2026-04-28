@@ -220,12 +220,14 @@ async def get_job(
 async def list_cfdis(
     tipo: Optional[str] = None,
     rfc_contraparte: Optional[str] = None,
+    credential_id: Optional[int] = None,
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    q = select(CfdiDownloaded).where(CfdiDownloaded.user_id == current_user.id)
+    base_where = CfdiDownloaded.user_id == current_user.id
+    q = select(CfdiDownloaded).where(base_where)
     if tipo:
         q = q.where(CfdiDownloaded.tipo_comprobante == tipo)
     if rfc_contraparte:
@@ -233,13 +235,18 @@ async def list_cfdis(
             (CfdiDownloaded.rfc_emisor == rfc_contraparte) |
             (CfdiDownloaded.rfc_receptor == rfc_contraparte)
         )
+    if credential_id:
+        q = q.join(SatDownloadJob, CfdiDownloaded.job_id == SatDownloadJob.id) \
+              .where(SatDownloadJob.credential_id == credential_id)
     q = q.order_by(CfdiDownloaded.fecha_emision.desc()).limit(limit).offset(offset)
     result = await db.execute(q)
     cfdis = result.scalars().all()
 
-    count_result = await db.execute(
-        select(func.count()).where(CfdiDownloaded.user_id == current_user.id)
-    )
+    count_q = select(func.count()).where(base_where)
+    if credential_id:
+        count_q = count_q.join(SatDownloadJob, CfdiDownloaded.job_id == SatDownloadJob.id) \
+                          .where(SatDownloadJob.credential_id == credential_id)
+    count_result = await db.execute(count_q)
     total = count_result.scalar()
 
     return {

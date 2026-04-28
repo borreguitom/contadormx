@@ -105,7 +105,8 @@ export default function ClientesPage() {
                   <SelectInput
                     value={form.regimen_fiscal ?? ""}
                     onChange={v => setForm(f => ({ ...f, regimen_fiscal: v }))}
-                    options={[{ value: "", label: "Seleccionar…" }, ...REGIMENES.map(r => ({ value: r, label: r }))]}
+                    options={REGIMENES}
+                    placeholder="Seleccionar…"
                   />
                 </div>
 

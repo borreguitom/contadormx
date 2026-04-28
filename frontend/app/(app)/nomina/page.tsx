@@ -195,7 +195,8 @@ export default function NominaPage() {
         <SelectInput
           value={String(clienteId)}
           onChange={v => setClienteId(v ? Number(v) : "")}
-          options={[{ value: "", label: "Seleccionar cliente..." }, ...clientes.map(c => ({ value: String(c.id), label: c.razon_social }))]}
+          options={clientes.map(c => ({ value: String(c.id), label: c.razon_social }))}
+          placeholder="Seleccionar cliente..."
           className="min-w-[200px] !rounded-lg !py-1.5"
         />
       </div>

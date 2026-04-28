@@ -4,7 +4,7 @@ import { api, SatCredential, SatJob, SatCfdi } from "@/lib/api";
 import { SelectInput } from "@/components/ui/SelectInput";
 
 const TIPO_OPTS = [
-  { value: "", label: "Todos" },
+  { value: "__all__", label: "Todos" },
   { value: "I", label: "I — Ingreso" },
   { value: "E", label: "E — Egreso" },
   { value: "N", label: "N — Nómina" },
@@ -39,7 +39,7 @@ export default function SatPage() {
   const [credId, setCredId] = useState<number | "">("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [tipoCmp, setTipoCmp] = useState("");
+  const [tipoCmp, setTipoCmp] = useState("__all__");
   const [downloadErr, setDownloadErr] = useState("");
   const [downloading, setDownloading] = useState(false);
 
@@ -61,9 +61,14 @@ export default function SatPage() {
     try { setJobs(await api.sat.listJobs()); } catch {}
   }, []);
 
-  const loadCfdis = useCallback(async (offset = 0, tipo = "") => {
+  const loadCfdis = useCallback(async (offset = 0, tipo = "", cred: number | "" = "") => {
     try {
-      const res = await api.sat.listCfdis({ limit: 50, offset, tipo: tipo || undefined });
+      const res = await api.sat.listCfdis({
+        limit: 50,
+        offset,
+        tipo: (tipo && tipo !== "__all__") ? tipo : undefined,
+        credential_id: cred ? Number(cred) : undefined,
+      });
       setCfdis(res.items);
       setCfdiTotal(res.total);
       setCfdiOffset(offset);
@@ -85,10 +90,10 @@ export default function SatPage() {
       clearInterval(pollRef.current);
       pollRef.current = null;
       // Refresh CFDIs when a job finishes
-      loadCfdis(cfdiOffset, cfdiTipo);
+      loadCfdis(cfdiOffset, cfdiTipo, credId);
     }
     return () => {};
-  }, [jobs, loadJobs, loadCfdis, cfdiOffset, cfdiTipo]);
+  }, [jobs, loadJobs, loadCfdis, cfdiOffset, cfdiTipo, credId]);
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
@@ -134,7 +139,7 @@ export default function SatPage() {
         credential_id: Number(credId),
         date_from: dateFrom,
         date_to: dateTo,
-        tipo_comprobante: (tipoCmp as "I"|"E"|"T"|"N"|"P") || undefined,
+        tipo_comprobante: (tipoCmp === "__all__" ? undefined : tipoCmp) as "I"|"E"|"T"|"N"|"P"|undefined,
       });
       setTab("jobs");
       await loadJobs();
@@ -275,7 +280,8 @@ export default function SatPage() {
                       <SelectInput
                         value={String(credId)}
                         onChange={v => setCredId(Number(v))}
-                        options={[{ value: "", label: "Seleccionar..." }, ...creds.map(c => ({ value: String(c.id), label: c.alias || c.rfc }))]}
+                        options={creds.map(c => ({ value: String(c.id), label: c.alias || c.rfc }))}
+                        placeholder="Seleccionar..."
                         className="!rounded-lg"
                       />
                     </label>
@@ -368,14 +374,21 @@ export default function SatPage() {
         {/* ── CFDIs tab ──────────────────────────────────────────────── */}
         {tab === "cfdis" && (
           <>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <SelectInput
+                value={String(credId)}
+                onChange={v => { const c = v ? Number(v) : "" as const; setCredId(c); loadCfdis(0, cfdiTipo, c); }}
+                options={creds.map(c => ({ value: String(c.id), label: c.alias || c.rfc }))}
+                placeholder="Todas las credenciales"
+                className="!rounded-lg !py-1.5 !text-xs min-w-[180px]"
+              />
               <SelectInput
                 value={cfdiTipo}
-                onChange={v => { setCfdiTipo(v); loadCfdis(0, v); }}
+                onChange={v => { setCfdiTipo(v); loadCfdis(0, v, credId); }}
                 options={TIPO_OPTS}
                 className="!rounded-lg !py-1.5 !text-xs min-w-[140px]"
               />
-              <span className="text-xs text-gray-600">{cfdiTotal} CFDIs descargados</span>
+              <span className="text-xs text-gray-600">{cfdiTotal} CFDIs</span>
             </div>
 
             {cfdis.length === 0 ? (
@@ -439,12 +452,12 @@ export default function SatPage() {
                     <span>{cfdiOffset + 1}–{Math.min(cfdiOffset + 50, cfdiTotal)} de {cfdiTotal}</span>
                     <div className="flex gap-2">
                       <button disabled={cfdiOffset === 0}
-                        onClick={() => loadCfdis(Math.max(0, cfdiOffset - 50), cfdiTipo)}
+                        onClick={() => loadCfdis(Math.max(0, cfdiOffset - 50), cfdiTipo, credId)}
                         className="px-3 py-1 rounded bg-white/5 disabled:opacity-30 hover:bg-white/10">
                         ← Anterior
                       </button>
                       <button disabled={cfdiOffset + 50 >= cfdiTotal}
-                        onClick={() => loadCfdis(cfdiOffset + 50, cfdiTipo)}
+                        onClick={() => loadCfdis(cfdiOffset + 50, cfdiTipo, credId)}
                         className="px-3 py-1 rounded bg-white/5 disabled:opacity-30 hover:bg-white/10">
                         Siguiente →
                       </button>

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { api, DocumentoItem, DiotProveedor, ResumenFiscal, UploadResult } from "@/lib/api";
+import Link from "next/link";
+import { api, type Cliente, DocumentoItem, DiotProveedor, ResumenFiscal, UploadResult } from "@/lib/api";
 
 const TIPO_MAP: Record<string, string> = {
   I: "Ingreso",
@@ -13,10 +14,10 @@ const TIPO_MAP: Record<string, string> = {
 };
 
 const ESTADO_COLOR: Record<string, string> = {
-  extraido: "bg-green-100 text-green-800",
-  pendiente: "bg-yellow-100 text-yellow-800",
-  procesando: "bg-blue-100 text-blue-800",
-  error: "bg-red-100 text-red-800",
+  extraido: "bg-green-900/40 text-green-300 border border-green-800/30",
+  pendiente: "bg-yellow-900/40 text-yellow-300 border border-yellow-800/30",
+  procesando: "bg-blue-900/40 text-blue-300 border border-blue-800/30",
+  error: "bg-red-900/40 text-red-300 border border-red-800/30",
 };
 
 function fmt(n: number | null | undefined) {
@@ -29,6 +30,7 @@ export default function DocumentosPage() {
   const router = useRouter();
   const clienteId = Number(id);
 
+  const [cliente, setCliente] = useState<Cliente | null>(null);
   const [docs, setDocs] = useState<DocumentoItem[]>([]);
   const [resumen, setResumen] = useState<ResumenFiscal | null>(null);
   const [diot, setDiot] = useState<DiotProveedor[] | null>(null);
@@ -43,14 +45,16 @@ export default function DocumentosPage() {
 
   const loadData = async () => {
     try {
-      const [d, r] = await Promise.all([
+      const [c, d, r] = await Promise.all([
+        api.clients.get(clienteId),
         api.documentos.list(clienteId),
         api.documentos.resumen(clienteId),
       ]);
+      setCliente(c);
       setDocs(d);
       setResumen(r);
     } catch {
-      router.push("/dashboard");
+      router.push("/clientes");
     } finally {
       setLoading(false);
     }
@@ -132,25 +136,39 @@ export default function DocumentosPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto p-6">
+    <div className="max-w-6xl mx-auto space-y-5">
+      {/* Breadcrumb + cliente */}
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        <Link href="/clientes" className="hover:text-green-400 transition-colors">Clientes</Link>
+        <span>/</span>
+        <Link href={`/clientes/${clienteId}`} className="hover:text-green-400 transition-colors">
+          {cliente?.razon_social ?? "…"}
+        </Link>
+        <span>/</span>
+        <span className="text-gray-400">Documentos</span>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <button
-            onClick={() => router.back()}
-            className="text-sm text-gray-500 hover:text-gray-800 mb-1 flex items-center gap-1"
-          >
-            ← Volver
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Documentos fiscales</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {docs.length} documento{docs.length !== 1 ? "s" : ""} — XML, PDF e imágenes de facturas
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-green-900/40 border border-green-800/30 flex items-center justify-center text-lg font-bold text-green-300">
+              {cliente?.razon_social?.[0]?.toUpperCase() ?? "?"}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-green-100">{cliente?.razon_social}</h1>
+              <p className="text-xs font-mono text-gray-500">{cliente?.rfc}</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
+            Documentos fiscales · {docs.length} archivo{docs.length !== 1 ? "s" : ""}
           </p>
         </div>
 
@@ -158,14 +176,14 @@ export default function DocumentosPage() {
           <button
             onClick={handleExportExcel}
             disabled={exportingExcel || docs.length === 0}
-            className="border border-green-600 text-green-700 hover:bg-green-50 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors"
+            className="border border-white/10 text-gray-300 hover:bg-white/5 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors"
           >
             {exportingExcel ? "Exportando..." : "Excel"}
           </button>
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
           >
             {uploading ? "Subiendo..." : "+ Subir documentos"}
           </button>
@@ -187,31 +205,31 @@ export default function DocumentosPage() {
         onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
         onClick={() => fileRef.current?.click()}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-          dragOver ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
+          dragOver ? "border-green-500/60 bg-green-500/8" : "border-white/10 hover:border-green-500/30 hover:bg-green-500/5"
         }`}
       >
         <div className="text-4xl mb-2">📂</div>
-        <p className="text-gray-600 font-medium">
+        <p className="text-gray-400 font-medium">
           Arrastra aquí una carpeta o archivos
         </p>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-600 mt-1">
           XML (CFDI), PDF, JPG, PNG — hasta 10 MB por archivo
         </p>
       </div>
 
       {/* Upload result banner */}
       {uploadResult && (
-        <div className="bg-white border rounded-xl p-4 space-y-2">
-          <p className="font-medium text-gray-800">
+        <div className="border border-white/10 bg-white/3 rounded-xl p-4 space-y-2">
+          <p className="font-medium text-green-200">
             Procesados: {uploadResult.procesados} archivo{uploadResult.procesados !== 1 ? "s" : ""}
           </p>
           <div className="space-y-1">
             {uploadResult.resultados.map((r, i) => (
               <div key={i} className="flex items-center gap-3 text-sm">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_COLOR[r.estado] ?? "bg-gray-100 text-gray-700"}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_COLOR[r.estado] ?? "bg-white/10 text-gray-300"}`}>
                   {r.estado}
                 </span>
-                <span className="text-gray-700 truncate max-w-xs">{r.archivo}</span>
+                <span className="text-gray-400 truncate max-w-xs">{r.archivo}</span>
                 {r.total != null && (
                   <span className="text-gray-500 ml-auto">{fmt(r.total)}</span>
                 )}
@@ -223,7 +241,7 @@ export default function DocumentosPage() {
       )}
 
       {/* Tabs */}
-      <div className="border-b flex gap-4">
+      <div className="border-b border-white/8 flex gap-1">
         {([
           ["documentos", "Listado"],
           ["resumen", "Resumen fiscal"],
@@ -232,10 +250,10 @@ export default function DocumentosPage() {
           <button
             key={t}
             onClick={() => { setTab(t); if (t === "diot") loadDiot(); }}
-            className={`pb-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors rounded-t-lg ${
               tab === t
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-800"
+                ? "border-green-400 text-green-300 bg-green-500/8"
+                : "border-transparent text-gray-500 hover:text-gray-300"
             }`}
           >
             {label}
@@ -245,16 +263,16 @@ export default function DocumentosPage() {
 
       {/* Tab: Listado */}
       {tab === "documentos" && (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="rounded-xl border border-white/8 bg-white/3 overflow-hidden">
           {docs.length === 0 ? (
-            <div className="p-12 text-center text-gray-400">
+            <div className="p-12 text-center text-gray-500">
               <div className="text-5xl mb-3">🗂️</div>
               <p>Sin documentos aún — sube XMLs, PDFs o imágenes de facturas</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b text-left text-gray-500 text-xs uppercase">
+                <tr className="border-b border-white/8 text-left text-gray-500 text-xs uppercase">
                   <th className="px-4 py-3">Archivo</th>
                   <th className="px-4 py-3">Tipo</th>
                   <th className="px-4 py-3">Emisor</th>
@@ -267,37 +285,37 @@ export default function DocumentosPage() {
               </thead>
               <tbody>
                 {docs.map((d) => (
-                  <tr key={d.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <tr key={d.id} className="border-b border-white/5 last:border-0 hover:bg-white/3">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900 max-w-[180px] truncate" title={d.nombre_archivo}>
+                      <div className="font-medium text-green-100 max-w-[180px] truncate" title={d.nombre_archivo}>
                         {d.nombre_archivo}
                       </div>
                       {d.uuid_cfdi && (
-                        <div className="text-xs text-gray-400 font-mono">{d.uuid_cfdi.slice(0, 18)}…</div>
+                        <div className="text-xs text-gray-500 font-mono">{d.uuid_cfdi.slice(0, 18)}…</div>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                      <span className="px-2 py-0.5 bg-white/8 border border-white/10 rounded text-xs text-gray-300">
                         {d.tipo_comprobante ? TIPO_MAP[d.tipo_comprobante] ?? d.tipo_comprobante : d.tipo_archivo}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-gray-900">{d.emisor_rfc ?? "—"}</div>
+                      <div className="text-gray-300 font-mono text-xs">{d.emisor_rfc ?? "—"}</div>
                       {d.emisor_nombre && (
-                        <div className="text-xs text-gray-400 max-w-[140px] truncate">{d.emisor_nombre}</div>
+                        <div className="text-xs text-gray-500 max-w-[140px] truncate">{d.emisor_nombre}</div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 text-gray-400 text-xs">
                       {d.fecha_emision ? new Date(d.fecha_emision).toLocaleDateString("es-MX") : "—"}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-gray-900">{fmt(d.total)}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">{fmt(d.iva_trasladado)}</td>
+                    <td className="px-4 py-3 text-right font-medium text-green-200">{fmt(d.total)}</td>
+                    <td className="px-4 py-3 text-right text-gray-400">{fmt(d.iva_trasladado)}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_COLOR[d.estado] ?? "bg-gray-100 text-gray-700"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_COLOR[d.estado] ?? "bg-white/8 text-gray-400"}`}>
                         {d.estado}
                       </span>
                       {d.error_msg && (
-                        <div className="text-xs text-red-500 mt-0.5 max-w-[120px] truncate" title={d.error_msg}>
+                        <div className="text-xs text-red-400 mt-0.5 max-w-[120px] truncate" title={d.error_msg}>
                           {d.error_msg}
                         </div>
                       )}
@@ -307,14 +325,14 @@ export default function DocumentosPage() {
                         <button
                           onClick={() => sendToAgent(d)}
                           title="Enviar al agente fiscal"
-                          className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 border border-blue-200 rounded"
+                          className="text-green-400 hover:text-green-300 text-xs px-2 py-1 border border-green-800/40 rounded transition-colors"
                         >
                           Consultar
                         </button>
                         <button
                           onClick={() => handleDelete(d.id)}
                           title="Eliminar"
-                          className="text-red-400 hover:text-red-600 text-xs"
+                          className="text-red-400 hover:text-red-300 text-xs"
                         >
                           ✕
                         </button>
@@ -332,35 +350,34 @@ export default function DocumentosPage() {
       {tab === "resumen" && resumen && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white border rounded-xl p-5">
+            <div className="rounded-xl border border-white/8 bg-white/3 p-5">
               <p className="text-xs text-gray-500 uppercase font-medium mb-1">Utilidad bruta</p>
-              <p className={`text-2xl font-bold ${resumen.utilidad_bruta >= 0 ? "text-green-600" : "text-red-600"}`}>
+              <p className={`text-2xl font-bold ${resumen.utilidad_bruta >= 0 ? "text-green-400" : "text-red-400"}`}>
                 {fmt(resumen.utilidad_bruta)}
               </p>
-              <p className="text-xs text-gray-400 mt-1">Ingresos − Egresos</p>
+              <p className="text-xs text-gray-500 mt-1">Ingresos − Egresos</p>
             </div>
-            <div className="bg-white border rounded-xl p-5">
+            <div className="rounded-xl border border-white/8 bg-white/3 p-5">
               <p className="text-xs text-gray-500 uppercase font-medium mb-1">IVA neto a pagar</p>
-              <p className={`text-2xl font-bold ${resumen.iva_neto_a_pagar >= 0 ? "text-orange-600" : "text-green-600"}`}>
+              <p className={`text-2xl font-bold ${resumen.iva_neto_a_pagar >= 0 ? "text-orange-400" : "text-green-400"}`}>
                 {fmt(resumen.iva_neto_a_pagar)}
               </p>
-              <p className="text-xs text-gray-400 mt-1">IVA cobrado − IVA pagado</p>
+              <p className="text-xs text-gray-500 mt-1">IVA cobrado − IVA pagado</p>
             </div>
-            <div className="bg-white border rounded-xl p-5">
+            <div className="rounded-xl border border-white/8 bg-white/3 p-5">
               <p className="text-xs text-gray-500 uppercase font-medium mb-1">ISR retenido total</p>
-              <p className="text-2xl font-bold text-gray-800">{fmt(resumen.isr_retenido_total)}</p>
-              <p className="text-xs text-gray-400 mt-1">{resumen.total_documentos} documentos procesados</p>
+              <p className="text-2xl font-bold text-green-200">{fmt(resumen.isr_retenido_total)}</p>
+              <p className="text-xs text-gray-500 mt-1">{resumen.total_documentos} documentos procesados</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Ingresos */}
-            <div className="bg-white border rounded-xl p-5">
-              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="text-green-500">↑</span> Ingresos ({resumen.ingresos.cantidad} facturas)
+            <div className="rounded-xl border border-white/8 bg-white/3 p-5">
+              <h3 className="font-semibold text-green-200 mb-4 flex items-center gap-2">
+                <span className="text-green-400">↑</span> Ingresos ({resumen.ingresos.cantidad} facturas)
               </h3>
               <table className="w-full text-sm">
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-white/5">
                   {[
                     ["Subtotal", resumen.ingresos.subtotal],
                     ["Descuento", -resumen.ingresos.descuento],
@@ -370,24 +387,23 @@ export default function DocumentosPage() {
                   ].map(([label, val]) => (
                     <tr key={String(label)}>
                       <td className="py-2 text-gray-500">{label}</td>
-                      <td className="py-2 text-right font-medium text-gray-800">{fmt(val as number)}</td>
+                      <td className="py-2 text-right font-medium text-gray-300">{fmt(val as number)}</td>
                     </tr>
                   ))}
                   <tr className="font-bold">
-                    <td className="py-2 text-gray-900">Total ingresos</td>
-                    <td className="py-2 text-right text-green-600">{fmt(resumen.ingresos.total)}</td>
+                    <td className="py-2 text-gray-200">Total ingresos</td>
+                    <td className="py-2 text-right text-green-400">{fmt(resumen.ingresos.total)}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            {/* Egresos */}
-            <div className="bg-white border rounded-xl p-5">
-              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <div className="rounded-xl border border-white/8 bg-white/3 p-5">
+              <h3 className="font-semibold text-green-200 mb-4 flex items-center gap-2">
                 <span className="text-red-400">↓</span> Egresos ({resumen.egresos.cantidad} facturas)
               </h3>
               <table className="w-full text-sm">
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-white/5">
                   {[
                     ["Subtotal", resumen.egresos.subtotal],
                     ["Descuento", -resumen.egresos.descuento],
@@ -397,20 +413,20 @@ export default function DocumentosPage() {
                   ].map(([label, val]) => (
                     <tr key={String(label)}>
                       <td className="py-2 text-gray-500">{label}</td>
-                      <td className="py-2 text-right font-medium text-gray-800">{fmt(val as number)}</td>
+                      <td className="py-2 text-right font-medium text-gray-300">{fmt(val as number)}</td>
                     </tr>
                   ))}
                   <tr className="font-bold">
-                    <td className="py-2 text-gray-900">Total egresos</td>
-                    <td className="py-2 text-right text-red-500">{fmt(resumen.egresos.total)}</td>
+                    <td className="py-2 text-gray-200">Total egresos</td>
+                    <td className="py-2 text-right text-red-400">{fmt(resumen.egresos.total)}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-            <strong>Tip:</strong> Abre cualquier documento y pulsa <strong>Consultar</strong> para que el agente fiscal analice ese CFDI en detalle — deducciones, alertas SAT, y más.
+          <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-sm text-green-300">
+            Abre cualquier documento y pulsa <strong>Consultar</strong> para que el agente fiscal analice ese CFDI — deducciones, alertas SAT, y más.
           </div>
         </div>
       )}
@@ -420,13 +436,13 @@ export default function DocumentosPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">DIOT — Declaración Informativa de Operaciones con Terceros</h2>
+              <h2 className="text-lg font-semibold text-green-100">DIOT — Declaración Informativa de Operaciones con Terceros</h2>
               <p className="text-sm text-gray-500 mt-0.5">Art. 32-B LIVA — Proveedores de egresos agrupados por RFC</p>
             </div>
             <button
               onClick={handleExportDiotTxt}
               disabled={exportingDiot || !diot || diot.length === 0}
-              className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors"
+              className="border border-white/10 text-gray-300 hover:bg-white/5 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors"
             >
               {exportingDiot ? "Generando..." : "Descargar TXT (SAT)"}
             </button>
@@ -434,18 +450,18 @@ export default function DocumentosPage() {
 
           {diot === null ? (
             <div className="flex items-center justify-center h-32">
-              <div className="animate-spin w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full" />
+              <div className="animate-spin w-6 h-6 border-4 border-green-500 border-t-transparent rounded-full" />
             </div>
           ) : diot.length === 0 ? (
-            <div className="bg-white border rounded-xl p-12 text-center text-gray-400">
+            <div className="rounded-xl border border-white/8 bg-white/3 p-12 text-center text-gray-500">
               <div className="text-5xl mb-3">📋</div>
               <p>Sin proveedores de egresos — sube facturas de gastos para generar la DIOT</p>
             </div>
           ) : (
-            <div className="bg-white border rounded-xl overflow-hidden">
+            <div className="rounded-xl border border-white/8 bg-white/3 overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b text-left text-gray-500 text-xs uppercase">
+                  <tr className="border-b border-white/8 text-left text-gray-500 text-xs uppercase">
                     <th className="px-4 py-3">RFC Proveedor</th>
                     <th className="px-4 py-3">Nombre</th>
                     <th className="px-4 py-3 text-center">Facturas</th>
@@ -457,15 +473,15 @@ export default function DocumentosPage() {
                 </thead>
                 <tbody>
                   {diot.map((p) => (
-                    <tr key={p.rfc} className="border-b last:border-0 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-sm text-gray-900">{p.rfc}</td>
-                      <td className="px-4 py-3 text-gray-700 max-w-[200px] truncate" title={p.nombre}>{p.nombre || "—"}</td>
-                      <td className="px-4 py-3 text-center text-gray-600">{p.cantidad_facturas}</td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900">{fmt(p.monto_operaciones)}</td>
-                      <td className="px-4 py-3 text-right text-gray-600">{fmt(p.iva_16_pagado)}</td>
-                      <td className="px-4 py-3 text-right text-gray-600">{fmt(p.iva_retenido)}</td>
+                    <tr key={p.rfc} className="border-b border-white/5 last:border-0 hover:bg-white/3">
+                      <td className="px-4 py-3 font-mono text-sm text-green-100">{p.rfc}</td>
+                      <td className="px-4 py-3 text-gray-300 max-w-[200px] truncate" title={p.nombre}>{p.nombre || "—"}</td>
+                      <td className="px-4 py-3 text-center text-gray-400">{p.cantidad_facturas}</td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-200">{fmt(p.monto_operaciones)}</td>
+                      <td className="px-4 py-3 text-right text-gray-400">{fmt(p.iva_16_pagado)}</td>
+                      <td className="px-4 py-3 text-right text-gray-400">{fmt(p.iva_retenido)}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+                        <span className="px-2 py-0.5 bg-white/8 border border-white/10 rounded-full text-xs text-gray-300">
                           {p.tipo_tercero === "04" ? "Nacional" : "Extranjero"}
                         </span>
                       </td>
@@ -473,11 +489,11 @@ export default function DocumentosPage() {
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="bg-gray-50 font-semibold text-sm">
-                    <td className="px-4 py-3 text-gray-700" colSpan={3}>Total ({diot.length} proveedores)</td>
-                    <td className="px-4 py-3 text-right text-gray-900">{fmt(diot.reduce((s, p) => s + p.monto_operaciones, 0))}</td>
-                    <td className="px-4 py-3 text-right text-gray-900">{fmt(diot.reduce((s, p) => s + p.iva_16_pagado, 0))}</td>
-                    <td className="px-4 py-3 text-right text-gray-900">{fmt(diot.reduce((s, p) => s + p.iva_retenido, 0))}</td>
+                  <tr className="border-t border-white/8 bg-white/3 font-semibold text-sm">
+                    <td className="px-4 py-3 text-gray-400" colSpan={3}>Total ({diot.length} proveedores)</td>
+                    <td className="px-4 py-3 text-right text-gray-200">{fmt(diot.reduce((s, p) => s + p.monto_operaciones, 0))}</td>
+                    <td className="px-4 py-3 text-right text-gray-200">{fmt(diot.reduce((s, p) => s + p.iva_16_pagado, 0))}</td>
+                    <td className="px-4 py-3 text-right text-gray-200">{fmt(diot.reduce((s, p) => s + p.iva_retenido, 0))}</td>
                     <td />
                   </tr>
                 </tfoot>
@@ -485,11 +501,12 @@ export default function DocumentosPage() {
             </div>
           )}
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+          <div className="rounded-xl border border-yellow-800/30 bg-yellow-900/20 p-4 text-sm text-yellow-300">
             <strong>Nota:</strong> El TXT generado sigue el formato de 19 columnas separadas por pipes requerido por el portal del SAT (DIOT). Verifica siempre los montos antes de presentar.
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

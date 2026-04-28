@@ -183,10 +183,11 @@ export const api = {
       }),
     listJobs: () => request<SatJob[]>("/api/sat/jobs"),
     getJob: (id: number) => request<SatJob>(`/api/sat/jobs/${id}`),
-    listCfdis: (params?: { tipo?: string; rfc_contraparte?: string; limit?: number; offset?: number }) => {
+    listCfdis: (params?: { tipo?: string; rfc_contraparte?: string; credential_id?: number; limit?: number; offset?: number }) => {
       const q = new URLSearchParams();
       if (params?.tipo) q.set("tipo", params.tipo);
       if (params?.rfc_contraparte) q.set("rfc_contraparte", params.rfc_contraparte);
+      if (params?.credential_id) q.set("credential_id", String(params.credential_id));
       if (params?.limit) q.set("limit", String(params.limit));
       if (params?.offset) q.set("offset", String(params.offset));
       return request<{ total: number; items: SatCfdi[] }>(`/api/sat/cfdis?${q}`);

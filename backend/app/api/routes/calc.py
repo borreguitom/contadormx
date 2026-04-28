@@ -12,7 +12,7 @@ from app.calculators.imss import calcular_cuotas_imss
 from app.calculators.nomina import calcular_nomina
 from app.calculators.finiquito import calcular_finiquito
 from app.calculators.declaracion_anual import calcular_declaracion_anual_pf
-from app.calculators.ieps import calcular_ieps, listar_categorias
+from app.calculators.ieps import calcular_ieps, listar_categorias_ieps as listar_categorias
 from app.core.deps import get_current_user
 
 router = APIRouter(dependencies=[Depends(get_current_user)])

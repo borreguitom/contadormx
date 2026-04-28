@@ -153,7 +153,7 @@ def _run_nomina_for_empleados(
         resultado = calcular_nomina(
             salario_mensual_bruto=salario_mensual,
             periodo=periodo,
-            otras_percepciones=otras_percepciones_global,
+            otras_percepciones_gravadas=otras_percepciones_global,
             vales_despensa=vales_despensa_global,
         )
 
