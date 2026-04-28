@@ -149,7 +149,7 @@ Fundamento: ${result.fundamento}`;
       <div>
         <h1 className="text-2xl font-bold text-green-100">Declaración Anual — Personas Físicas</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Art. 150-152 LISR · Vencimiento: <strong>30 de abril</strong> · Tarifa anual 2025
+          Art. 150-152 LISR · Vencimiento: <strong>30 de abril</strong> · Tarifa anual 2026
         </p>
       </div>
 

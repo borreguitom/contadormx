@@ -14,7 +14,7 @@ const QUICK_TOPICS = [
   { icon: "👤", label: "ISR PF",     query: "¿Cuánto ISR retiene mensualmente un empleado con sueldo de $30,000?" },
   { icon: "🧾", label: "IVA",        query: "Tengo ventas de $200,000 y compras acreditables de $80,000. ¿Cuánto IVA entero?" },
   { icon: "👷", label: "Nómina",     query: "Calcula la nómina completa para un empleado con salario mensual de $25,000" },
-  { icon: "📅", label: "Calendario", query: "¿Cuáles son las obligaciones fiscales de una persona moral en julio 2025?" },
+  { icon: "📅", label: "Calendario", query: "¿Cuáles son las obligaciones fiscales de una persona moral en julio 2026?" },
   { icon: "⚖️", label: "Finiquito",  query: "Calcula el finiquito por despido injustificado de un empleado con $600 diarios y 3 años de antigüedad" },
   { icon: "📑", label: "Dec. Anual", query: "Calcula la declaración anual de un asalariado con ingresos de $480,000 al año, retenciones de $58,000 y gastos médicos de $25,000" },
 ];

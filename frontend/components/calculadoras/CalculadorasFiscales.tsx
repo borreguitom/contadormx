@@ -26,7 +26,7 @@ export default function CalculadorasFiscales() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <header>
-        <h1 className="text-3xl font-bold">Calculadoras fiscales 2025</h1>
+        <h1 className="text-3xl font-bold">Calculadoras fiscales 2026</h1>
         <p className="text-gray-600 mt-1">Cálculos basados en la legislación mexicana vigente.</p>
       </header>
 

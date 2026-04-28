@@ -143,7 +143,7 @@ export default function NominaCalculator() {
       {/* ──────────────────────────────────────────── FORMULARIO */}
       <div className="space-y-6">
         <header>
-          <h1 className="text-3xl font-bold">Calculadora de Nómina 2025</h1>
+          <h1 className="text-3xl font-bold">Calculadora de Nómina 2026</h1>
           <p className="text-gray-600 mt-1">
             Cálculo completo según Art. 96 LISR, Art. 25 LSS y Art. 29 Ley INFONAVIT.
           </p>

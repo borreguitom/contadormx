@@ -11,7 +11,7 @@ const FEATURES = [
   },
   {
     icon: "🧮",
-    title: "Calculadoras 2025",
+    title: "Calculadoras 2026",
     desc: "ISR PF/PM, IVA con proporcionalidad, IMSS, nómina completa y finiquito. Tablas vigentes actualizadas.",
   },
   {
@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: "📅",
     title: "Calendario fiscal",
-    desc: "Todas las obligaciones del ejercicio 2025 por régimen. Pagos provisionales, DIOT, PTU, aguinaldo.",
+    desc: "Todas las obligaciones del ejercicio 2026 por régimen. Pagos provisionales, DIOT, PTU, aguinaldo.",
   },
   {
     icon: "📄",
@@ -107,7 +107,7 @@ export default function LandingPage() {
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full border border-green-500/25 bg-green-500/8 text-green-400 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Tablas fiscales 2025 actualizadas · ISR · IVA · IMSS · LFT
+            Tablas fiscales 2026 actualizadas · ISR · IVA · IMSS · LFT
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-green-50 leading-tight mb-5">
             El agente fiscal IA<br />
@@ -233,7 +233,7 @@ export default function LandingPage() {
             Empieza hoy, gratis
           </h2>
           <p className="text-gray-500 text-sm mb-8">
-            Más de 6 herramientas fiscales integradas. Tablas 2025 actualizadas. Sin instalación.
+            Más de 6 herramientas fiscales integradas. Tablas 2026 actualizadas. Sin instalación.
           </p>
           <Link href="/register"
             className="inline-flex px-8 py-3 rounded-xl bg-gradient-to-r from-green-700 to-green-500 text-white font-semibold shadow-lg shadow-green-900/40 hover:from-green-600 hover:to-green-400 transition-all text-sm">
@@ -247,7 +247,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between text-xs text-gray-600">
           <div className="flex items-center gap-2">
             <span>🏛️</span>
-            <span>ContadorMX — Hecho en México · 2025</span>
+            <span>ContadorMX — Hecho en México · 2026</span>
           </div>
           <div className="flex gap-4">
             <Link href="/login" className="hover:text-gray-400 transition-colors">Ingresar</Link>

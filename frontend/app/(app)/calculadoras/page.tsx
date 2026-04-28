@@ -221,7 +221,7 @@ function IEPSForm({ onResult, loading, setLoading, setError }: FormProps) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-gray-500 bg-white/3 rounded-lg px-3 py-2 border border-white/6">
-        Art. 2 LIEPS — tasas 2025. El IEPS integra la base para IVA (Art. 18 LIVA).
+        Art. 2 LIEPS — tasas 2026. El IEPS integra la base para IVA (Art. 18 LIVA).
       </div>
       <Field label="Categoría">
         <select value={categoria} onChange={e => setCategoria(e.target.value)}
@@ -275,7 +275,7 @@ function IMSSForm({ onResult, loading, setLoading, setError }: FormProps) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-gray-500 bg-white/3 rounded-lg px-3 py-2 border border-white/6">
-        Art. 25-168 LSS — cuotas obrero-patronales. Art. 29 Ley INFONAVIT. UMA 2025: $113.14/día.
+        Art. 25-168 LSS — cuotas obrero-patronales. Art. 29 Ley INFONAVIT. UMA 2026: $117.31/día.
       </div>
       <Field label="Salario Diario Integrado — SDI ($)">
         <NumInput value={sdi} onChange={setSdi} />
@@ -644,7 +644,7 @@ export default function CalculadorasPage() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-5">
           <h1 className="text-xl font-bold text-green-100">Calculadoras Fiscales</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Tablas vigentes 2025 — ISR, IVA, IEPS, IMSS, INFONAVIT, LFT</p>
+          <p className="text-sm text-gray-500 mt-0.5">Tablas vigentes 2026 — ISR, IVA, IEPS, IMSS, INFONAVIT, LFT</p>
         </div>
 
         {/* Tabs */}

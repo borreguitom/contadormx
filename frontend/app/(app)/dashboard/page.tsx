@@ -189,7 +189,7 @@ export default function DashboardPage() {
           </div>
           <div className="rounded-2xl border border-white/8 bg-white/3 p-4">
             <p className="text-2xl mb-1">🏛️</p>
-            <p className="text-2xl font-bold text-green-300">2025</p>
+            <p className="text-2xl font-bold text-green-300">2026</p>
             <p className="text-xs text-gray-500 mt-0.5">Ejercicio fiscal</p>
           </div>
         </div>

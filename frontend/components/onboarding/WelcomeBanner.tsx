@@ -5,7 +5,7 @@ const STEPS = [
   {
     icon: "💬",
     titulo: "Chat fiscal con IA",
-    desc: "Pregunta cualquier duda contable o fiscal. El agente usa tablas ISR 2025, LIVA, LSS y consulta legislación en tiempo real.",
+    desc: "Pregunta cualquier duda contable o fiscal. El agente usa tablas ISR 2026, LIVA, LSS y consulta legislación en tiempo real.",
   },
   {
     icon: "🧮",
@@ -15,7 +15,7 @@ const STEPS = [
   {
     icon: "📅",
     titulo: "Calendario fiscal completo",
-    desc: "Todas las obligaciones de 2025 por régimen. Nunca más pierdas un pago provisional.",
+    desc: "Todas las obligaciones de 2026 por régimen. Nunca más pierdas un pago provisional.",
   },
   {
     icon: "📄",

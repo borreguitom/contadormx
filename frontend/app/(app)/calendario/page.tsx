@@ -228,7 +228,7 @@ export default function CalendarioPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold text-green-100">Calendario Fiscal 2025</h1>
+            <h1 className="text-xl font-bold text-green-100">Calendario Fiscal 2026</h1>
             <p className="text-sm text-gray-500 mt-0.5">Obligaciones por régimen — México</p>
           </div>
           <div className="flex gap-2 flex-wrap justify-end">
@@ -251,7 +251,7 @@ export default function CalendarioPage() {
             { label: "Obligaciones este mes", value: totalMes, icon: "📅" },
             { label: "Fechas críticas", value: urgentes, icon: "🔴" },
             { label: "Día límite principal", value: "17", icon: "📌" },
-            { label: "Ejercicio fiscal", value: "2025", icon: "🏛️" },
+            { label: "Ejercicio fiscal", value: "2026", icon: "🏛️" },
           ].map(s => (
             <div key={s.label} className="rounded-2xl border border-white/8 bg-white/3 p-4">
               <p className="text-2xl mb-1">{s.icon}</p>
@@ -303,7 +303,7 @@ export default function CalendarioPage() {
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-gray-500 uppercase tracking-widest">
-                {MESES[mesVista]} 2025
+                {MESES[mesVista]} 2026
                 {mesVista === mesActual && <span className="ml-2 text-green-400">← hoy</span>}
               </p>
               <span className="text-xs text-gray-600">{obligacionesVista.length} obligaciones</span>
