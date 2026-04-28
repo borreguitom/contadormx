@@ -1,7 +1,7 @@
 """
 ISR Cálculos — Art. 96 LISR (retención sueldos), Art. 14 LISR (pagos provisionales PM),
 Art. 111 LISR (RESICO PF), Art. 196 LISR (RESICO PM).
-Tablas vigentes 2025 (actualizadas con INPC publicado en RMF 2025).
+Tablas vigentes 2026 (Anexo 8 RMF 2026, DOF 28/12/2025).
 """
 from dataclasses import dataclass, field
 from typing import Optional
@@ -9,50 +9,44 @@ from typing import Optional
 
 # ── Tablas ISR 2025 ──────────────────────────────────────────────────────────
 
-# Tarifa mensual Art. 96 LISR — sueldos y salarios
+# Tarifa mensual Art. 96 LISR — Anexo 8 RMF 2026 (DOF 28/12/2025)
 # (límite_inferior, límite_superior, cuota_fija, tasa_marginal)
-TARIFA_ISR_MENSUAL_2025 = [
-    (0.01,       746.04,       0.00,       0.0192),
-    (746.05,     6_332.05,     14.32,      0.0640),
-    (6_332.06,   11_128.01,    371.83,     0.1088),
-    (11_128.02,  12_935.82,    893.63,     0.1600),
-    (12_935.83,  15_487.71,    1_182.88,   0.1792),
-    (15_487.72,  31_236.49,    1_640.18,   0.2136),
-    (31_236.50,  49_233.00,    5_004.12,   0.2352),
-    (49_233.01,  93_993.90,    9_236.89,   0.3000),
-    (93_993.91,  125_325.20,   22_665.17,  0.3200),
-    (125_325.21, 375_975.61,   32_691.18,  0.3400),
-    (375_975.62, float("inf"), 117_912.32, 0.3500),
+TARIFA_ISR_MENSUAL_2026 = [
+    (0.01,         844.59,         0.00,         0.0192),
+    (844.60,       7_168.51,       16.22,        0.0640),
+    (7_168.52,     12_598.02,      420.95,       0.1088),
+    (12_598.03,    14_644.64,      1_011.68,     0.1600),
+    (14_644.65,    17_533.64,      1_339.14,     0.1792),
+    (17_533.65,    35_362.83,      1_856.84,     0.2136),
+    (35_362.84,    55_736.68,      5_665.16,     0.2352),
+    (55_736.69,    106_410.50,     10_457.09,    0.3000),
+    (106_410.51,   141_880.66,     25_659.23,    0.3200),
+    (141_880.67,   425_641.99,     37_009.69,    0.3400),
+    (425_642.00,   float("inf"),   133_488.54,   0.3500),
 ]
+TARIFA_ISR_MENSUAL_2025 = TARIFA_ISR_MENSUAL_2026  # alias backward-compat
 
-# Tarifa anual Art. 152 LISR — declaración anual PF
-TARIFA_ISR_ANUAL_2025 = [
-    (0.01,         8_952.49,       0.00,        0.0192),
-    (8_952.50,     75_984.55,      171.88,      0.0640),
-    (75_984.56,    133_536.07,     4_461.94,    0.1088),
-    (133_536.08,   155_229.80,     10_723.55,   0.1600),
-    (155_229.81,   185_852.57,     14_194.54,   0.1792),
-    (185_852.58,   374_837.88,     19_682.13,   0.2136),
-    (374_837.89,   590_795.99,     60_049.40,   0.2352),
-    (590_796.00,   1_127_926.84,   110_842.74,  0.3000),
-    (1_127_926.85, 1_503_902.46,   271_981.99,  0.3200),
-    (1_503_902.47, 4_511_707.37,   392_294.17,  0.3400),
-    (4_511_707.38, float("inf"),   1_414_947.85, 0.3500),
+# Tarifa anual Art. 152 LISR — Anexo 8 RMF 2026 (DOF 28/12/2025)
+TARIFA_ISR_ANUAL_2026 = [
+    (0.01,           10_135.11,       0.00,          0.0192),
+    (10_135.12,      86_022.11,       194.59,        0.0640),
+    (86_022.12,      151_176.19,      5_051.37,      0.1088),
+    (151_176.20,     175_735.66,      12_140.13,     0.1600),
+    (175_735.67,     210_403.69,      16_069.64,     0.1792),
+    (210_403.70,     424_353.97,      22_282.14,     0.2136),
+    (424_353.98,     668_840.14,      67_981.92,     0.2352),
+    (668_840.15,     1_276_925.98,    125_485.07,    0.3000),
+    (1_276_925.99,   1_702_567.97,    307_910.81,    0.3200),
+    (1_702_567.98,   5_107_703.92,    444_116.23,    0.3400),
+    (5_107_703.93,   float("inf"),    1_601_862.46,  0.3500),
 ]
+TARIFA_ISR_ANUAL_2025 = TARIFA_ISR_ANUAL_2026  # alias backward-compat
 
-# Tabla de subsidio al empleo mensual 2025 (Art. 1.15 Decreto)
+# Subsidio al empleo mensual 2026 (DOF 31/12/2025)
+# Reforma 2026: monto fijo $536.21 para ingresos ≤ $11,492.66 (15.59% UMA mensual 2025)
 SUBSIDIO_EMPLEO_MENSUAL = [
-    (0.01,     1_768.96, 407.02),
-    (1_768.97, 2_653.38, 406.83),
-    (2_653.39, 3_472.84, 406.62),
-    (3_472.85, 3_537.87, 392.77),
-    (3_537.88, 4_446.15, 382.46),
-    (4_446.16, 4_717.18, 354.23),
-    (4_717.19, 5_335.42, 324.87),
-    (5_335.43, 6_224.67, 294.63),
-    (6_224.68, 7_113.90, 253.54),
-    (7_113.91, 7_382.33, 217.61),
-    (7_382.34, float("inf"), 0.00),
+    (0.01,       11_492.66,    536.21),
+    (11_492.67,  float("inf"), 0.00),
 ]
 
 # Tasa RESICO PF (Art. 113-E LISR) — sobre ingresos cobrados mensuales
@@ -159,12 +153,12 @@ def calcular_isr_pf(
 def _isr_sueldos(ingresos: float, periodo: str) -> dict:
     """Art. 96 LISR — retención mensual sueldos y salarios."""
     if periodo == "anual":
-        tarifa = TARIFA_ISR_ANUAL_2025
+        tarifa = TARIFA_ISR_ANUAL_2026
         base = ingresos
         subsidio = 0.0
         fundamento = "Art. 152 LISR"
     else:
-        tarifa = TARIFA_ISR_MENSUAL_2025
+        tarifa = TARIFA_ISR_MENSUAL_2026
         base = ingresos
         subsidio = _subsidio_empleo(ingresos)
         fundamento = "Art. 96 LISR"
@@ -191,10 +185,10 @@ def _isr_actividades_empresariales(ingresos: float, deducciones: float, periodo:
     """Art. 106 LISR — pago provisional actividades empresariales y honorarios."""
     utilidad = max(ingresos - deducciones, 0.0)
     if periodo == "anual":
-        tarifa = TARIFA_ISR_ANUAL_2025
+        tarifa = TARIFA_ISR_ANUAL_2026
         fundamento = "Art. 152 LISR"
     else:
-        tarifa = TARIFA_ISR_MENSUAL_2025
+        tarifa = TARIFA_ISR_MENSUAL_2026
         fundamento = "Art. 106 LISR"
 
     resultado_tarifa = _aplicar_tarifa(utilidad, tarifa)
@@ -219,10 +213,10 @@ def _isr_arrendamiento(ingresos: float, periodo: str) -> dict:
     deduccion_ciega = ingresos * 0.35
     base = ingresos - deduccion_ciega
     if periodo == "anual":
-        tarifa = TARIFA_ISR_ANUAL_2025
+        tarifa = TARIFA_ISR_ANUAL_2026
         fundamento = "Art. 152 LISR"
     else:
-        tarifa = TARIFA_ISR_MENSUAL_2025
+        tarifa = TARIFA_ISR_MENSUAL_2026
         fundamento = "Art. 116 LISR"
 
     resultado_tarifa = _aplicar_tarifa(base, tarifa)
@@ -292,7 +286,7 @@ def calcular_isr_pm(
     utilidad_fiscal_estimada = ingresos_acumulados * coeficiente_utilidad
 
     # Tarifa mensual proporcional al número de meses transcurridos
-    resultado_tarifa = _aplicar_tarifa(utilidad_fiscal_estimada / mes, TARIFA_ISR_MENSUAL_2025)
+    resultado_tarifa = _aplicar_tarifa(utilidad_fiscal_estimada / mes, TARIFA_ISR_MENSUAL_2026)
     isr_mensual = resultado_tarifa["impuesto"]
     isr_acumulado = isr_mensual * mes
 

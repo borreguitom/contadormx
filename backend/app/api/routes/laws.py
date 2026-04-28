@@ -94,5 +94,5 @@ async def get_inpc():
     uma = get_uma_2025()
     return {
         "inpc": inpc,
-        "uma_2025": uma,
+        "uma_vigente": uma,
     }

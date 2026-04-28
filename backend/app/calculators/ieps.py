@@ -22,7 +22,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional
 
 from app.utils.constantes_fiscales import (
-    IEPS_CATEGORIAS_2025,
+    IEPS_CATEGORIAS_2026,
     IVA_TASA_GENERAL,
     EJERCICIO_FISCAL_VIGENTE,
 )
@@ -71,7 +71,7 @@ class ResultadoIEPS:
 def listar_categorias_ieps() -> list[dict]:
     """Devuelve lista de todas las categorías IEPS para usar en frontend."""
     categorias = []
-    for clave, info in IEPS_CATEGORIAS_2025.items():
+    for clave, info in IEPS_CATEGORIAS_2026.items():
         cat = {
             "clave": clave,
             "nombre": info["nombre"],
@@ -117,14 +117,14 @@ def calcular_ieps(
 
     # Validar categoría
     cat_norm = categoria.lower().replace(" ", "_").replace("-", "_")
-    if cat_norm not in IEPS_CATEGORIAS_2025:
+    if cat_norm not in IEPS_CATEGORIAS_2026:
         return {
             "error": True,
             "mensaje": f"Categoría '{categoria}' no encontrada.",
-            "categorias_disponibles": list(IEPS_CATEGORIAS_2025.keys()),
+            "categorias_disponibles": list(IEPS_CATEGORIAS_2026.keys()),
         }
 
-    info = IEPS_CATEGORIAS_2025[cat_norm]
+    info = IEPS_CATEGORIAS_2026[cat_norm]
     nombre = info["nombre"]
     fundamento = info["fundamento"]
 

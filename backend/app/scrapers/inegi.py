@@ -11,16 +11,19 @@ import httpx
 # API del BIE — no requiere API key para series públicas
 INPC_API = "https://www.inegi.org.mx/app/api/indicadores/desarrolladores/jsonxml/INDICATOR/628194/es/0700/false/BIE/2.0/token_no_requerido"
 
-# Valores estáticos de respaldo 2025 (actualizar anualmente)
-VALORES_2025 = {
-    "uma_diaria": 113.14,
-    "uma_mensual": round(113.14 * 30.4, 2),
-    "uma_anual": round(113.14 * 365, 2),
-    "salario_minimo_diario_general": 278.80,
-    "salario_minimo_diario_zona_libre_norte": 419.88,
-    "inpc_base": 118.14,  # Base 2Q 2018 = 100, valor aproximado enero 2025
-    "fecha_actualizacion": "2025-01-01",
+# Valores estáticos de respaldo 2026 (actualizar anualmente)
+VALORES_2026 = {
+    "uma_diaria": 117.31,                          # INEGI comunicado 1/26, vigente 1 feb 2026
+    "uma_mensual": round(117.31 * 30.4, 2),        # 3,566.22
+    "uma_anual": round(117.31 * 365.25, 2),        # 42,846.08
+    "salario_minimo_diario_general": 315.04,        # CONASAMI, vigente 1 ene 2026
+    "salario_minimo_diario_zona_libre_norte": 440.87,
+    "inpc_base": 131.50,                           # valor aproximado ene 2026 (base 2Q 2018=100)
+    "fecha_actualizacion": "2026-01-01",
 }
+
+# Alias para retrocompatibilidad
+VALORES_2025 = VALORES_2026
 
 
 async def fetch_inpc_actual() -> dict:
@@ -30,7 +33,6 @@ async def fetch_inpc_actual() -> dict:
     """
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            # Usar el endpoint de última observación
             resp = await client.get(
                 "https://www.inegi.org.mx/app/api/indicadores/desarrolladores/jsonxml/INDICATOR/628194/es/0700/false/BIE/2.0/token_no_requerido",
                 headers={"Accept": "application/json"},
@@ -52,23 +54,23 @@ async def fetch_inpc_actual() -> dict:
         pass
 
     return {
-        "inpc": VALORES_2025["inpc_base"],
-        "periodo": "2025-01",
-        "fuente": "valores_estaticos_2025",
+        "inpc": VALORES_2026["inpc_base"],
+        "periodo": "2026-01",
+        "fuente": "valores_estaticos_2026",
         "fecha_consulta": datetime.now(timezone.utc).isoformat(),
-        "nota": "API INEGI no disponible. Usando valores base 2025.",
+        "nota": "API INEGI no disponible. Usando valores base 2026.",
     }
 
 
 def get_uma_2025() -> dict:
     return {
-        "uma_diaria": VALORES_2025["uma_diaria"],
-        "uma_mensual": VALORES_2025["uma_mensual"],
-        "uma_anual": VALORES_2025["uma_anual"],
-        "salario_minimo_diario": VALORES_2025["salario_minimo_diario_general"],
-        "salario_minimo_zona_norte": VALORES_2025["salario_minimo_diario_zona_libre_norte"],
-        "fundamento": "DOF 30-ene-2025 — CONASAMI",
-        "vigencia": "1 enero 2025 — 31 diciembre 2025",
+        "uma_diaria": VALORES_2026["uma_diaria"],
+        "uma_mensual": VALORES_2026["uma_mensual"],
+        "uma_anual": VALORES_2026["uma_anual"],
+        "salario_minimo_diario": VALORES_2026["salario_minimo_diario_general"],
+        "salario_minimo_zona_norte": VALORES_2026["salario_minimo_diario_zona_libre_norte"],
+        "fundamento": "DOF 09-dic-2025 (SM) · INEGI comunicado 1/26 (UMA)",
+        "vigencia": "1 enero 2026 — 31 diciembre 2026",
     }
 
 

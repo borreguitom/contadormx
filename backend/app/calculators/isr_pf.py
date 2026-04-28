@@ -20,10 +20,10 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional
 
 from app.utils.constantes_fiscales import (
-    TARIFA_ISR_MENSUAL_2025,
-    TARIFA_ISR_ANUAL_2025,
-    SUBSIDIO_EMPLEO_MENSUAL_2025,
-    RESICO_PF_TASAS_2025,
+    TARIFA_ISR_MENSUAL_2026,
+    TARIFA_ISR_ANUAL_2026,
+    SUBSIDIO_EMPLEO_MENSUAL_2026,
+    RESICO_PF_TASAS_2026,
     RESICO_PF_LIMITE_ANUAL,
     UMA_ANUAL,
     TOPE_DEDUCCIONES_PERSONALES_UMA,
@@ -71,7 +71,7 @@ def _aplicar_tarifa(base: float, tarifa: list) -> dict:
 
 def _subsidio_empleo(ingreso_mensual: float) -> dict:
     """Aplica tabla subsidio para el empleo."""
-    for rango in SUBSIDIO_EMPLEO_MENSUAL_2025:
+    for rango in SUBSIDIO_EMPLEO_MENSUAL_2026:
         if rango.limite_inferior <= ingreso_mensual <= rango.limite_superior:
             return {
                 "aplica": rango.subsidio > 0,
@@ -168,7 +168,7 @@ def calcular_isr_sueldos(
             )
 
         base = max(ingresos_anuales - deducciones_aplicadas, 0)
-        tarifa = _aplicar_tarifa(base, TARIFA_ISR_ANUAL_2025)
+        tarifa = _aplicar_tarifa(base, TARIFA_ISR_ANUAL_2026)
         isr_det = tarifa["impuesto_total"]
         subsidio = {"aplica": False, "subsidio": 0.0}
         isr_cargo = isr_det
@@ -180,7 +180,7 @@ def calcular_isr_sueldos(
         # Cálculo mensual sin deducciones (se aplican en anual)
         deducciones_aplicadas = 0.0
         base = ingresos_mensuales
-        tarifa = _aplicar_tarifa(base, TARIFA_ISR_MENSUAL_2025)
+        tarifa = _aplicar_tarifa(base, TARIFA_ISR_MENSUAL_2026)
         isr_det = tarifa["impuesto_total"]
 
         if incluye_subsidio_empleo:
@@ -241,7 +241,7 @@ def calcular_isr_honorarios(
         tope = _calcular_tope_deducciones_personales(ingresos_mensuales)
         ded_personales_aplicadas = min(deducciones_personales_anuales, tope)
         base = max(utilidad - ded_personales_aplicadas, 0)
-        tarifa = _aplicar_tarifa(base, TARIFA_ISR_ANUAL_2025)
+        tarifa = _aplicar_tarifa(base, TARIFA_ISR_ANUAL_2026)
 
         if deducciones_personales_anuales > tope:
             advertencias.append(
@@ -250,7 +250,7 @@ def calcular_isr_honorarios(
     else:
         ded_personales_aplicadas = 0
         base = utilidad
-        tarifa = _aplicar_tarifa(base, TARIFA_ISR_MENSUAL_2025)
+        tarifa = _aplicar_tarifa(base, TARIFA_ISR_MENSUAL_2026)
 
     isr_det = tarifa["impuesto_total"]
 
@@ -299,7 +299,7 @@ def calcular_isr_arrendamiento(
         tipo_deduccion = "Deducciones reales"
 
     base = max(ingresos_mensuales - deduccion_aplicada, 0)
-    tarifa_tabla = TARIFA_ISR_ANUAL_2025 if periodo == "anual" else TARIFA_ISR_MENSUAL_2025
+    tarifa_tabla = TARIFA_ISR_ANUAL_2026 if periodo == "anual" else TARIFA_ISR_MENSUAL_2026
     tarifa = _aplicar_tarifa(base, tarifa_tabla)
 
     return ResultadoISR(
@@ -351,7 +351,7 @@ def calcular_isr_resico_pf(
     # Buscar tasa aplicable
     tasa = 0.025  # default máxima
     rango_aplicado = None
-    for rango in RESICO_PF_TASAS_2025:
+    for rango in RESICO_PF_TASAS_2026:
         if rango.limite_inferior <= ingresos_mensuales <= rango.limite_superior:
             tasa = rango.tasa_marginal
             rango_aplicado = {

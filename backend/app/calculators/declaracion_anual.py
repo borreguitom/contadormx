@@ -14,7 +14,7 @@ Deducciones personales Art. 151 LISR con límites 2025.
 from __future__ import annotations
 from dataclasses import dataclass
 
-from app.calculators.isr import TARIFA_ISR_ANUAL_2025, _aplicar_tarifa as _tarifa_isr
+from app.calculators.isr import TARIFA_ISR_ANUAL_2026, _aplicar_tarifa as _tarifa_isr
 from app.utils.constantes_fiscales import UMA_ANUAL
 
 
@@ -149,7 +149,7 @@ def calcular_declaracion_anual_pf(
     base_gravable = max(0.0, total_ingresos - deducciones_aplicables)
 
     # ── 4. ISR del ejercicio — tarifa Art. 152 LISR ──────────────────────────
-    isr_ejercicio = _tarifa_isr(base_gravable, TARIFA_ISR_ANUAL_2025)["impuesto"]
+    isr_ejercicio = _tarifa_isr(base_gravable, TARIFA_ISR_ANUAL_2026)["impuesto"]
 
     # ── 5. Acreditamientos ───────────────────────────────────────────────────
     total_acreditable = retenciones_sueldos + pagos_provisionales + subsidio_empleo_acreditado

@@ -1,33 +1,36 @@
 """
-Constantes fiscales mexicanas 2025
+Constantes fiscales mexicanas 2026
 ===================================
 Una sola fuente de verdad para tarifas, UMAs, salarios mínimos, tasas.
 Actualizar este archivo anualmente con valores oficiales DOF.
 
 Referencias:
-  - DOF UMA 2025: https://www.dof.gob.mx
-  - SAT Tarifas: https://www.sat.gob.mx
-  - CONASAMI Salario Mínimo: https://www.gob.mx/conasami
+  - DOF UMA 2026 (vigente 1 feb 2026): INEGI comunicado 1/26
+  - SAT Tarifas ISR: Anexo 8 RMF 2026 (DOF 28/12/2025)
+  - CONASAMI Salario Mínimo 2026: DOF 09/12/2025
+  - Subsidio al Empleo 2026: DOF 31/12/2025
+  - IEPS combustibles 2026: Art. 2-I-D LIEPS actualizado
+  - IMSS CyV 2026: Reforma LSS DOF 16/12/2020, tabla progresiva 2026
 """
 from __future__ import annotations
 from typing import NamedTuple
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# UMA — Unidad de Medida y Actualización (vigente 1 feb 2025)
+# UMA — Unidad de Medida y Actualización (vigente 1 feb 2026)
 # ══════════════════════════════════════════════════════════════════════════
 
-UMA_DIARIA = 113.14
-UMA_MENSUAL = round(UMA_DIARIA * 30.4, 2)      # 3,439.46
-UMA_ANUAL = round(UMA_DIARIA * 365.25, 2)      # 41,325.84
+UMA_DIARIA = 117.31
+UMA_MENSUAL = round(UMA_DIARIA * 30.4, 2)      # 3,566.22
+UMA_ANUAL = round(UMA_DIARIA * 365.25, 2)      # 42,846.08
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# Salario Mínimo (vigente 1 ene 2025)
+# Salario Mínimo (vigente 1 ene 2026)
 # ══════════════════════════════════════════════════════════════════════════
 
-SALARIO_MINIMO_GENERAL = 278.80
-SALARIO_MINIMO_ZONA_NORTE = 419.88
+SALARIO_MINIMO_GENERAL = 315.04
+SALARIO_MINIMO_ZONA_NORTE = 440.87
 SALARIO_MINIMO_PROFESIONAL = SALARIO_MINIMO_GENERAL  # base, varía por profesión
 
 # Topes según LFT/LSS
@@ -37,7 +40,8 @@ TOPE_SBC_25_UMA = UMA_DIARIA * 25                          # Art. 28 LSS
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# Tarifa ISR Mensual 2025 (Art. 96 LISR)
+# Tarifa ISR Mensual 2026 (Art. 96 LISR)
+# Anexo 8 RMF 2026, DOF 28/12/2025
 # (límite_inferior, límite_superior, cuota_fija, tasa_marginal)
 # ══════════════════════════════════════════════════════════════════════════
 
@@ -48,42 +52,51 @@ class RangoTarifa(NamedTuple):
     tasa_marginal: float
 
 
-TARIFA_ISR_MENSUAL_2025 = [
-    RangoTarifa(0.01,        746.04,         0.00,        0.0192),
-    RangoTarifa(746.05,      6_332.05,       14.32,       0.0640),
-    RangoTarifa(6_332.06,    11_128.01,      371.83,      0.1088),
-    RangoTarifa(11_128.02,   12_935.82,      893.63,      0.1600),
-    RangoTarifa(12_935.83,   15_487.71,      1_182.88,    0.1792),
-    RangoTarifa(15_487.72,   31_236.49,      1_640.18,    0.2136),
-    RangoTarifa(31_236.50,   49_233.00,      5_004.12,    0.2352),
-    RangoTarifa(49_233.01,   93_993.90,      9_236.89,    0.3000),
-    RangoTarifa(93_993.91,   125_325.20,     22_665.17,   0.3200),
-    RangoTarifa(125_325.21,  375_975.61,     32_691.18,   0.3400),
-    RangoTarifa(375_975.62,  float("inf"),   117_912.32,  0.3500),
+TARIFA_ISR_MENSUAL_2026 = [
+    RangoTarifa(0.01,         844.59,         0.00,         0.0192),
+    RangoTarifa(844.60,       7_168.51,       16.22,        0.0640),
+    RangoTarifa(7_168.52,     12_598.02,      420.95,       0.1088),
+    RangoTarifa(12_598.03,    14_644.64,      1_011.68,     0.1600),
+    RangoTarifa(14_644.65,    17_533.64,      1_339.14,     0.1792),
+    RangoTarifa(17_533.65,    35_362.83,      1_856.84,     0.2136),
+    RangoTarifa(35_362.84,    55_736.68,      5_665.16,     0.2352),
+    RangoTarifa(55_736.69,    106_410.50,     10_457.09,    0.3000),
+    RangoTarifa(106_410.51,   141_880.66,     25_659.23,    0.3200),
+    RangoTarifa(141_880.67,   425_641.99,     37_009.69,    0.3400),
+    RangoTarifa(425_642.00,   float("inf"),   133_488.54,   0.3500),
 ]
 
+# Alias backward-compat (eliminar en ejercicio 2027)
+TARIFA_ISR_MENSUAL_2025 = TARIFA_ISR_MENSUAL_2026
+
 
 # ══════════════════════════════════════════════════════════════════════════
-# Tarifa ISR Anual 2025 (Art. 152 LISR)
+# Tarifa ISR Anual 2026 (Art. 152 LISR)
+# Anexo 8 RMF 2026, DOF 28/12/2025
 # ══════════════════════════════════════════════════════════════════════════
 
-TARIFA_ISR_ANUAL_2025 = [
-    RangoTarifa(0.01,           8_952.49,        0.00,         0.0192),
-    RangoTarifa(8_952.50,       75_984.55,       171.88,       0.0640),
-    RangoTarifa(75_984.56,      133_536.07,      4_461.94,     0.1088),
-    RangoTarifa(133_536.08,     155_229.80,      10_723.55,    0.1600),
-    RangoTarifa(155_229.81,     185_852.57,      14_194.54,    0.1792),
-    RangoTarifa(185_852.58,     374_837.88,      19_682.13,    0.2136),
-    RangoTarifa(374_837.89,     590_795.99,      60_049.40,    0.2352),
-    RangoTarifa(590_796.00,     1_127_926.84,    110_842.74,   0.3000),
-    RangoTarifa(1_127_926.85,   1_503_902.46,    271_981.99,   0.3200),
-    RangoTarifa(1_503_902.47,   4_511_707.37,    392_294.17,   0.3400),
-    RangoTarifa(4_511_707.38,   float("inf"),    1_414_947.85, 0.3500),
+TARIFA_ISR_ANUAL_2026 = [
+    RangoTarifa(0.01,           10_135.11,       0.00,          0.0192),
+    RangoTarifa(10_135.12,      86_022.11,       194.59,        0.0640),
+    RangoTarifa(86_022.12,      151_176.19,      5_051.37,      0.1088),
+    RangoTarifa(151_176.20,     175_735.66,      12_140.13,     0.1600),
+    RangoTarifa(175_735.67,     210_403.69,      16_069.64,     0.1792),
+    RangoTarifa(210_403.70,     424_353.97,      22_282.14,     0.2136),
+    RangoTarifa(424_353.98,     668_840.14,      67_981.92,     0.2352),
+    RangoTarifa(668_840.15,     1_276_925.98,    125_485.07,    0.3000),
+    RangoTarifa(1_276_925.99,   1_702_567.97,    307_910.81,    0.3200),
+    RangoTarifa(1_702_567.98,   5_107_703.92,    444_116.23,    0.3400),
+    RangoTarifa(5_107_703.93,   float("inf"),    1_601_862.46,  0.3500),
 ]
 
+# Alias backward-compat (eliminar en ejercicio 2027)
+TARIFA_ISR_ANUAL_2025 = TARIFA_ISR_ANUAL_2026
+
 
 # ══════════════════════════════════════════════════════════════════════════
-# Subsidio para el Empleo Mensual 2025 (Decreto Art. 1.15)
+# Subsidio para el Empleo Mensual 2026 (DOF 31/12/2025)
+# Reforma: ahora es monto fijo ($536.21) para ingresos ≤ $11,492.66
+# Antes había 10 tramos con montos variables (tabla 2008-2025)
 # ══════════════════════════════════════════════════════════════════════════
 
 class RangoSubsidio(NamedTuple):
@@ -92,26 +105,20 @@ class RangoSubsidio(NamedTuple):
     subsidio: float
 
 
-SUBSIDIO_EMPLEO_MENSUAL_2025 = [
-    RangoSubsidio(0.01,       1_768.96,      407.02),
-    RangoSubsidio(1_768.97,   2_653.38,      406.83),
-    RangoSubsidio(2_653.39,   3_472.84,      406.62),
-    RangoSubsidio(3_472.85,   3_537.87,      392.77),
-    RangoSubsidio(3_537.88,   4_446.15,      382.46),
-    RangoSubsidio(4_446.16,   4_717.18,      354.23),
-    RangoSubsidio(4_717.19,   5_335.42,      324.87),
-    RangoSubsidio(5_335.43,   6_224.67,      294.63),
-    RangoSubsidio(6_224.68,   7_113.90,      253.54),
-    RangoSubsidio(7_113.91,   7_382.33,      217.61),
-    RangoSubsidio(7_382.34,   float("inf"),  0.00),
+SUBSIDIO_EMPLEO_MENSUAL_2026 = [
+    RangoSubsidio(0.01,       11_492.66,     536.21),
+    RangoSubsidio(11_492.67,  float("inf"),  0.00),
 ]
+
+# Alias backward-compat (eliminar en ejercicio 2027)
+SUBSIDIO_EMPLEO_MENSUAL_2025 = SUBSIDIO_EMPLEO_MENSUAL_2026
 
 
 # ══════════════════════════════════════════════════════════════════════════
 # RESICO PF (Art. 113-E LISR) — Tasas mensuales sobre ingresos cobrados
 # ══════════════════════════════════════════════════════════════════════════
 
-RESICO_PF_TASAS_2025 = [
+RESICO_PF_TASAS_2026 = [
     RangoTarifa(0.01,            25_000.00,    0.0,  0.0100),
     RangoTarifa(25_000.01,       50_000.00,    0.0,  0.0110),
     RangoTarifa(50_000.01,       83_333.33,    0.0,  0.0150),
@@ -119,6 +126,7 @@ RESICO_PF_TASAS_2025 = [
     RangoTarifa(208_333.34,      291_666.66,   0.0,  0.0250),
 ]
 
+RESICO_PF_TASAS_2025 = RESICO_PF_TASAS_2026  # alias backward-compat
 RESICO_PF_LIMITE_ANUAL = 3_500_000.00
 RESICO_PM_TASA = 0.01            # Art. 196 LISR
 RESICO_PM_LIMITE_ANUAL = 35_000_000.00
@@ -134,10 +142,11 @@ IVA_TASA_CERO = 0.00             # Art. 2-A LIVA
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# Tasas IEPS 2025 (Art. 2 LIEPS)
+# Tasas IEPS 2026 (Art. 2 LIEPS)
+# Cuotas de combustibles actualizadas con INPC (DOF ene 2026)
 # ══════════════════════════════════════════════════════════════════════════
 
-IEPS_CATEGORIAS_2025 = {
+IEPS_CATEGORIAS_2026 = {
     "bebidas_alcoholicas_hasta_14gl": {
         "nombre": "Bebidas alcohólicas ≤14° GL (cerveza, vino)",
         "tasa": 0.265,
@@ -161,7 +170,7 @@ IEPS_CATEGORIAS_2025 = {
     "tabacos_labrados": {
         "nombre": "Tabacos labrados (cigarros)",
         "tasa": 1.60,
-        "cuota_adicional_cigarro": 0.6166,  # por cigarro
+        "cuota_adicional_cigarro": 0.6166,
         "fundamento": "Art. 2-I-C LIEPS",
     },
     "puros_artesanales": {
@@ -177,7 +186,7 @@ IEPS_CATEGORIAS_2025 = {
     "bebidas_saborizadas": {
         "nombre": "Bebidas saborizadas con azúcares añadidos",
         "tasa": 0.0,
-        "cuota_litro": 1.6451,  # 2025 — actualizado por inflación
+        "cuota_litro": 1.6451,
         "fundamento": "Art. 2-I-G LIEPS",
     },
     "alimentos_alta_densidad_calorica": {
@@ -185,19 +194,20 @@ IEPS_CATEGORIAS_2025 = {
         "tasa": 0.08,
         "fundamento": "Art. 2-I-J LIEPS",
     },
+    # Combustibles automotrices — cuotas actualizadas 2026 (Art. 2-I-D LIEPS)
     "combustibles_automotrices_gasolina_menor_92": {
         "nombre": "Gasolina menor a 92 octanos (Magna)",
-        "cuota_litro": 6.4555,
+        "cuota_litro": 6.7001,
         "fundamento": "Art. 2-I-D LIEPS",
     },
     "combustibles_automotrices_gasolina_mayor_92": {
         "nombre": "Gasolina mayor o igual a 92 octanos (Premium)",
-        "cuota_litro": 5.4555,
+        "cuota_litro": 5.6579,
         "fundamento": "Art. 2-I-D LIEPS",
     },
     "combustibles_diesel": {
         "nombre": "Diésel",
-        "cuota_litro": 7.0978,
+        "cuota_litro": 7.3634,
         "fundamento": "Art. 2-I-D LIEPS",
     },
     "plaguicidas_categoria_1_2": {
@@ -227,14 +237,19 @@ IEPS_CATEGORIAS_2025 = {
     },
 }
 
+# Alias backward-compat
+IEPS_CATEGORIAS_2025 = IEPS_CATEGORIAS_2026
+
 
 # ══════════════════════════════════════════════════════════════════════════
-# Cuotas IMSS 2025 (Ley del Seguro Social)
+# Cuotas IMSS 2026 (Ley del Seguro Social)
+# Cesantía y Vejez: tabla PROGRESIVA por SBC a partir de 2026
+# (Reforma LSS DOF 16/12/2020 — implementación gradual hasta 2030)
 # ══════════════════════════════════════════════════════════════════════════
 
-CUOTAS_IMSS_2025 = {
+CUOTAS_IMSS_2026 = {
     "enfermedad_maternidad": {
-        "fija_patron_3uma": 0.204,         # 20.4% sobre 3 UMAs
+        "fija_patron_3uma": 0.204,
         "excedente_patron": 0.011,
         "excedente_trabajador": 0.004,
         "dinero_patron": 0.007,
@@ -250,8 +265,10 @@ CUOTAS_IMSS_2025 = {
         "patron": 0.02,
         "trabajador": 0.0,
     },
+    # Cesantía y Vejez: ver función tasa_cesantia_vejez_patron_2026()
+    # La cuota obrera permanece fija en 1.125% para todos los rangos
     "cesantia_vejez": {
-        "patron": 0.0315,                  # 2025 (sube a 11.875% en 2030)
+        "patron": None,       # PROGRESIVA — usar tasa_cesantia_vejez_patron_2026(sbc_diario)
         "trabajador": 0.01125,
     },
     "guarderias": {
@@ -259,16 +276,47 @@ CUOTAS_IMSS_2025 = {
         "trabajador": 0.0,
     },
     "infonavit": {
-        "patron": 0.05,                    # Art. 29 Ley INFONAVIT
+        "patron": 0.05,
         "trabajador": 0.0,
     },
-    "riesgo_trabajo_promedio": 0.0054355,  # Promedio nacional, varía por SIPA
+    "riesgo_trabajo_promedio": 0.0054355,
 }
+
+# Alias backward-compat
+CUOTAS_IMSS_2025 = CUOTAS_IMSS_2026
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Cesantía y Vejez 2026 — Tabla progresiva por SBC (Art. 168 BIS LSS)
+# Reforma DOF 16/12/2020, vigente progresivamente hasta 2030
+# Rangos expresados en múltiplos del Salario Mínimo diario ($315.04)
+# ══════════════════════════════════════════════════════════════════════════
+
+# (limite_superior_sm, tasa_patron)  — trabajador siempre 1.125%
+CESANTIA_VEJEZ_TABLA_2026 = [
+    (1.00,        0.03150),   # ≤ 1 SM  ($315.04/día)
+    (1.50,        0.03676),   # 1.01–1.50 SM  ($315–$473/día)
+    (2.00,        0.04851),   # 1.51–2.00 SM  ($473–$630/día)
+    (2.50,        0.05556),   # 2.01–2.50 SM  ($630–$788/día)
+    (3.00,        0.06026),   # 2.51–3.00 SM  ($788–$945/día)
+    (3.50,        0.06361),   # 3.01–3.50 SM  ($945–$1,103/día)
+    (4.00,        0.06613),   # 3.51–4.00 SM  ($1,103–$1,260/día)
+    (float("inf"), 0.07513),  # 4.01+ SM  (>$1,260/día)
+]
+CESANTIA_VEJEZ_TRABAJADOR_2026 = 0.01125
+
+
+def tasa_cesantia_vejez_patron_2026(sbc_diario: float) -> float:
+    """Devuelve la tasa patronal de cesantía y vejez según SBC diario (Art. 168 BIS LSS 2026)."""
+    multiplo_sm = sbc_diario / SALARIO_MINIMO_GENERAL
+    for limite, tasa in CESANTIA_VEJEZ_TABLA_2026:
+        if multiplo_sm <= limite:
+            return tasa
+    return 0.07513
 
 
 # ══════════════════════════════════════════════════════════════════════════
 # Coeficientes de utilidad por actividad (Art. 14 LISR)
-# Para empresas sin declaración anterior (estimados)
 # ══════════════════════════════════════════════════════════════════════════
 
 COEFICIENTES_UTILIDAD_DEFAULT = {
@@ -284,10 +332,9 @@ COEFICIENTES_UTILIDAD_DEFAULT = {
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# Deducciones personales 2025 (Art. 151 LISR)
+# Deducciones personales 2026 (Art. 151 LISR)
 # ══════════════════════════════════════════════════════════════════════════
 
-# Tope global: 5 UMAs anuales o 15% de ingresos (lo que resulte menor)
 TOPE_DEDUCCIONES_PERSONALES_UMA = UMA_ANUAL * 5
 TOPE_DEDUCCIONES_PERSONALES_PCT = 0.15
 
@@ -336,6 +383,6 @@ def dias_vacaciones(anios: int) -> int:
 # Año fiscal vigente
 # ══════════════════════════════════════════════════════════════════════════
 
-EJERCICIO_FISCAL_VIGENTE = 2025
+EJERCICIO_FISCAL_VIGENTE = 2026
 DIAS_NATURALES_ANIO = 365
 DIAS_NATURALES_ANIO_BISIESTO = 366

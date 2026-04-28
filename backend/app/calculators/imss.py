@@ -25,7 +25,9 @@ from app.utils.constantes_fiscales import (
     SALARIO_MINIMO_GENERAL,
     SALARIO_MINIMO_ZONA_NORTE,
     TOPE_SBC_25_UMA,
-    CUOTAS_IMSS_2025,
+    CUOTAS_IMSS_2026,
+    CESANTIA_VEJEZ_TRABAJADOR_2026,
+    tasa_cesantia_vejez_patron_2026,
     EJERCICIO_FISCAL_VIGENTE,
 )
 
@@ -215,7 +217,7 @@ def calcular_cuotas_imss(
     # CUOTAS PATRONALES
     # ═════════════════════════════════════════════════════════════
 
-    em = CUOTAS_IMSS_2025["enfermedad_maternidad"]
+    em = CUOTAS_IMSS_2026["enfermedad_maternidad"]
 
     # Enfermedad y Maternidad
     em_fija_patron = round(uma_3_mensual * em["fija_patron_3uma"], 2)
@@ -225,22 +227,24 @@ def calcular_cuotas_imss(
     em_gmpm_patron = round(sdi_mensual * em["gmpm_patron"], 2)
 
     # Invalidez y Vida
-    iv_patron = round(sdi_mensual * CUOTAS_IMSS_2025["invalidez_vida"]["patron"], 2)
+    iv_patron = round(sdi_mensual * CUOTAS_IMSS_2026["invalidez_vida"]["patron"], 2)
 
     # Retiro
-    retiro_patron = round(sdi_mensual * CUOTAS_IMSS_2025["retiro"]["patron"], 2)
+    retiro_patron = round(sdi_mensual * CUOTAS_IMSS_2026["retiro"]["patron"], 2)
 
-    # Cesantía y Vejez
-    cv_patron = round(sdi_mensual * CUOTAS_IMSS_2025["cesantia_vejez"]["patron"], 2)
+    # Cesantía y Vejez — tasa progresiva por SBC (Art. 168 BIS LSS, reforma 2026)
+    sbc_diario = salario_diario_base if salario_diario_base else salario_diario_integrado
+    tasa_cv_patron = tasa_cesantia_vejez_patron_2026(sbc_diario)
+    cv_patron = round(sdi_mensual * tasa_cv_patron, 2)
 
     # Guarderías
-    guarderias_patron = round(sdi_mensual * CUOTAS_IMSS_2025["guarderias"]["patron"], 2)
+    guarderias_patron = round(sdi_mensual * CUOTAS_IMSS_2026["guarderias"]["patron"], 2)
 
     # Riesgo de trabajo
     riesgo_patron = round(sdi_mensual * prima_aplicada, 2)
 
     # INFONAVIT
-    infonavit_patron = round(sdi_mensual * CUOTAS_IMSS_2025["infonavit"]["patron"], 2)
+    infonavit_patron = round(sdi_mensual * CUOTAS_IMSS_2026["infonavit"]["patron"], 2)
 
     total_patron = round(
         em_fija_patron + em_excedente_patron + em_dinero_patron + em_gmpm_patron +
@@ -256,8 +260,8 @@ def calcular_cuotas_imss(
     em_excedente_trab = round(excedente_base * em["excedente_trabajador"], 2)
     em_dinero_trab = round(sdi_mensual * em["dinero_trabajador"], 2)
     em_gmpm_trab = round(sdi_mensual * em["gmpm_trabajador"], 2)
-    iv_trab = round(sdi_mensual * CUOTAS_IMSS_2025["invalidez_vida"]["trabajador"], 2)
-    cv_trab = round(sdi_mensual * CUOTAS_IMSS_2025["cesantia_vejez"]["trabajador"], 2)
+    iv_trab = round(sdi_mensual * CUOTAS_IMSS_2026["invalidez_vida"]["trabajador"], 2)
+    cv_trab = round(sdi_mensual * CESANTIA_VEJEZ_TRABAJADOR_2026, 2)
 
     total_trabajador = round(
         em_excedente_trab + em_dinero_trab + em_gmpm_trab + iv_trab + cv_trab,
@@ -299,7 +303,7 @@ def calcular_cuotas_imss(
             "monto": retiro_patron,
         },
         "cesantia_y_vejez": {
-            "tasa": "3.15% sobre SDI (incrementa hasta 11.875% en 2030)",
+            "tasa": f"{tasa_cv_patron*100:.3f}% sobre SDI (progresiva por SBC, Art. 168 BIS LSS)",
             "monto": cv_patron,
         },
         "guarderias": {
