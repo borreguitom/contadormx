@@ -20,6 +20,13 @@ const ESTADO_COLOR: Record<string, string> = {
   error: "bg-red-900/40 text-red-300 border border-red-800/30",
 };
 
+const SAT_COLOR: Record<string, string> = {
+  Vigente: "bg-emerald-900/40 text-emerald-300 border border-emerald-800/30",
+  Cancelado: "bg-red-900/50 text-red-300 border border-red-700/40",
+  "No Encontrado": "bg-orange-900/40 text-orange-300 border border-orange-800/30",
+  error: "bg-white/5 text-gray-500 border border-white/8",
+};
+
 function fmt(n: number | null | undefined) {
   if (n == null) return "—";
   return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
@@ -230,6 +237,11 @@ export default function DocumentosPage() {
                   {r.estado}
                 </span>
                 <span className="text-gray-400 truncate max-w-xs">{r.archivo}</span>
+                {r.sat_estado && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${SAT_COLOR[r.sat_estado] ?? "bg-white/5 text-gray-500"}`}>
+                    SAT: {r.sat_estado}
+                  </span>
+                )}
                 {r.total != null && (
                   <span className="text-gray-500 ml-auto">{fmt(r.total)}</span>
                 )}
@@ -311,14 +323,24 @@ export default function DocumentosPage() {
                     <td className="px-4 py-3 text-right font-medium text-green-200">{fmt(d.total)}</td>
                     <td className="px-4 py-3 text-right text-gray-400">{fmt(d.iva_trasladado)}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_COLOR[d.estado] ?? "bg-white/8 text-gray-400"}`}>
-                        {d.estado}
-                      </span>
-                      {d.error_msg && (
-                        <div className="text-xs text-red-400 mt-0.5 max-w-[120px] truncate" title={d.error_msg}>
-                          {d.error_msg}
-                        </div>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium w-fit ${ESTADO_COLOR[d.estado] ?? "bg-white/8 text-gray-400"}`}>
+                          {d.estado}
+                        </span>
+                        {d.sat_estado && (
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium w-fit ${SAT_COLOR[d.sat_estado] ?? "bg-white/5 text-gray-500 border border-white/8"}`}
+                            title={d.sat_cancelable ?? undefined}
+                          >
+                            SAT: {d.sat_estado}
+                          </span>
+                        )}
+                        {d.error_msg && (
+                          <div className="text-xs text-red-400 max-w-[120px] truncate" title={d.error_msg}>
+                            {d.error_msg}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 justify-end">

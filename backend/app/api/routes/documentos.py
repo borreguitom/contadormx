@@ -15,15 +15,18 @@ import urllib.parse
 from collections import defaultdict
 from pathlib import Path
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import AsyncSessionLocal, Cliente, Documento, get_db
+from app.core.database import Cliente, Documento, get_db
 from app.core.deps import get_current_user
 from app.core.database import User
 from app.services.doc_extractor import extract_document
+from app.services.sat_verificador import verificar_cfdi_sat
 
 router = APIRouter()
 
@@ -90,7 +93,7 @@ async def upload_documentos(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    cliente = await _verify_cliente(cliente_id, current_user, db)
+    await _verify_cliente(cliente_id, current_user, db)
     dest_dir = _cliente_path(current_user.id, cliente_id)
 
     results = []
@@ -124,12 +127,37 @@ async def upload_documentos(
         tipo = "xml" if ext == ".xml" else ("pdf" if ext == ".pdf" else "imagen")
         extracted = extract_document(upload.filename or "", content)
 
+        # verificación SAT — solo XMLs con UUID y datos completos
+        sat_estado = None
+        sat_cancelable = None
+        sat_verificado_at = None
+        uuid = extracted.get("uuid_cfdi")
+        if (
+            ext == ".xml"
+            and uuid
+            and extracted.get("emisor_rfc")
+            and extracted.get("receptor_rfc")
+            and extracted.get("total") is not None
+        ):
+            sat = await verificar_cfdi_sat(
+                uuid=uuid,
+                rfc_emisor=extracted["emisor_rfc"],
+                rfc_receptor=extracted["receptor_rfc"],
+                total=extracted["total"],
+            )
+            sat_estado = sat["sat_estado"]
+            sat_cancelable = sat["sat_cancelable"]
+            sat_verificado_at = datetime.now(timezone.utc)
+
         doc = Documento(
             cliente_id=cliente_id,
             user_id=current_user.id,
             nombre_archivo=upload.filename or safe_name,
             tipo_archivo=tipo,
             file_path=str(dest_path),
+            sat_estado=sat_estado,
+            sat_cancelable=sat_cancelable,
+            sat_verificado_at=sat_verificado_at,
             **{k: extracted[k] for k in (
                 "uuid_cfdi", "tipo_comprobante", "serie", "folio", "fecha_emision",
                 "emisor_rfc", "emisor_nombre", "receptor_rfc", "receptor_nombre",
@@ -143,8 +171,9 @@ async def upload_documentos(
             "archivo": upload.filename,
             "estado": extracted["estado"],
             "doc_id": doc.id,
-            "uuid_cfdi": extracted["uuid_cfdi"],
+            "uuid_cfdi": uuid,
             "total": extracted["total"],
+            "sat_estado": sat_estado,
         })
 
     await db.commit()
@@ -184,6 +213,9 @@ async def list_documentos(
             "moneda": d.moneda,
             "estado": d.estado,
             "error_msg": d.error_msg,
+            "sat_estado": d.sat_estado,
+            "sat_cancelable": d.sat_cancelable,
+            "sat_verificado_at": d.sat_verificado_at.isoformat() if d.sat_verificado_at else None,
             "created_at": d.created_at.isoformat(),
         }
         for d in docs

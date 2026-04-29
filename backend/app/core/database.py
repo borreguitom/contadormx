@@ -129,6 +129,10 @@ class Documento(Base):
     # estado del procesamiento
     estado = Column(String(20), default="pendiente", nullable=False)
     error_msg = Column(Text, nullable=True)
+    # verificación SAT
+    sat_estado = Column(String(30), nullable=True)       # Vigente | Cancelado | No Encontrado | error
+    sat_cancelable = Column(String(50), nullable=True)
+    sat_verificado_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     cliente = relationship("Cliente", back_populates="documentos")
 

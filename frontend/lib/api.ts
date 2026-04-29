@@ -380,12 +380,15 @@ export interface DocumentoItem {
   moneda: string | null;
   estado: string;
   error_msg: string | null;
+  sat_estado: string | null;
+  sat_cancelable: string | null;
+  sat_verificado_at: string | null;
   created_at: string;
 }
 
 export interface UploadResult {
   procesados: number;
-  resultados: { archivo: string; estado: string; doc_id?: number; uuid_cfdi?: string | null; total?: number | null; detalle?: string }[];
+  resultados: { archivo: string; estado: string; doc_id?: number; uuid_cfdi?: string | null; total?: number | null; sat_estado?: string | null; detalle?: string }[];
 }
 
 export interface DiotProveedor {
