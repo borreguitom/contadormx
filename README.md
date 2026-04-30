@@ -1,6 +1,7 @@
 # ContadorMX
 
-Agente fiscal y contable con IA para contadores mexicanos. FastAPI + Next.js 15 + Claude Sonnet.
+Plataforma fiscal con IA para contadores mexicanos. FastAPI + Next.js + Claude Sonnet.
+Calculadoras con tablas **2026 vigentes**, verificación CFDI automática contra el SAT y agente con RAG legislativo.
 
 ---
 
@@ -114,7 +115,15 @@ contadormx/
 │   │   │   ├── billing.py       # Planes y checkout Stripe
 │   │   │   ├── docs.py          # Generador de documentos (PDF/DOCX)
 │   │   │   └── sat.py           # Descarga masiva de CFDIs del SAT
-│   │   ├── calculators/         # Lógica fiscal: ISR PF/PM, IVA, IMSS, nómina
+│   │   ├── calculators/         # Lógica fiscal — tablas 2026
+│   │   │   ├── isr.py              # Tarifas ISR mensual/anual 2026 + subsidio al empleo
+│   │   │   ├── isr_pf.py           # ISR PF todos los regímenes + RESICO
+│   │   │   ├── iva.py              # IVA con proporcionalidad
+│   │   │   ├── ieps.py             # IEPS 9 categorías (Art. 2 LIEPS)
+│   │   │   ├── imss.py             # Cuotas IMSS/INFONAVIT + CyV progresivo 2026
+│   │   │   ├── nomina.py           # Nómina completa individual
+│   │   │   ├── finiquito.py        # Finiquito y liquidación LFT
+│   │   │   └── declaracion_anual.py # Declaración anual PF Art. 150-152 LISR
 │   │   ├── core/
 │   │   │   ├── config.py        # Settings (pydantic-settings)
 │   │   │   ├── database.py      # Modelos SQLAlchemy + AsyncSession
@@ -122,19 +131,22 @@ contadormx/
 │   │   │   └── limiter.py       # Rate limiting (slowapi)
 │   │   ├── scrapers/            # DOF, SAT novedades, INPC (Celery)
 │   │   ├── services/
-│   │   │   ├── agent.py         # Orquestador del agente Claude
-│   │   │   ├── crypto.py        # Fernet AES-128 para credenciales SAT
-│   │   │   ├── doc_extractor.py # Extracción de datos de XML/PDF
-│   │   │   ├── doc_generator.py # Generación de PDF/DOCX con Jinja2
-│   │   │   ├── embeddings.py    # VoyageAI / OpenAI embeddings
-│   │   │   ├── rag.py           # Búsqueda semántica en Qdrant
-│   │   │   ├── sat_ws.py        # Cliente SOAP SAT (Descarga Masiva)
-│   │   │   └── tools.py         # Herramientas del agente (tool_use)
+│   │   │   ├── agent.py            # Orquestador del agente Claude
+│   │   │   ├── crypto.py           # Fernet AES-128 para credenciales SAT
+│   │   │   ├── doc_extractor.py    # Extracción de datos de XML/PDF/imagen (Claude Vision)
+│   │   │   ├── doc_generator.py    # Generación de PDF/DOCX con Jinja2
+│   │   │   ├── embeddings.py       # VoyageAI / OpenAI embeddings
+│   │   │   ├── rag.py              # Búsqueda semántica en Qdrant
+│   │   │   ├── sat_verificador.py  # SOAP consultaqr.facturaelectronica.sat.gob.mx
+│   │   │   ├── sat_ws.py           # Cliente SOAP SAT (Descarga Masiva)
+│   │   │   └── tools.py            # Herramientas del agente (tool_use)
 │   │   └── tasks/
 │   │       ├── emails.py        # Emails transaccionales (Celery)
 │   │       ├── fiscal_reminders.py
 │   │       └── sat_download.py  # Tarea de descarga masiva SAT
-│   ├── alembic/versions/        # Migraciones 001–005
+│   │   └── utils/
+│   │       └── constantes_fiscales.py  # Fuente única de verdad — todas las tablas 2026
+│   ├── alembic/versions/        # Migraciones 001–007
 │   ├── celery_app.py
 │   └── requirements.txt
 ├── frontend/
@@ -186,16 +198,20 @@ Documentación interactiva: `http://localhost:8000/docs`
 | GET | `/conversations` | Historial de conversaciones |
 | GET | `/conversations/{id}` | Mensajes de una conversación |
 
-### Calculadoras `/api/calc`
+### Calculadoras `/api/calc` — tablas 2026
+
+Constantes vigentes: UMA $117.31/día (INEGI 1/26), SM $315.04 (CONASAMI DOF 09-dic-2025), tarifa ISR Anexo 8 RMF 2026, subsidio al empleo $536.21 fijo, IEPS combustibles actualizados, CyV patronal progresiva LSS Art. 168 BIS.
+
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/isr/personas-fisicas` | ISR mensual persona física |
-| POST | `/isr/personas-morales` | ISR mensual persona moral |
-| POST | `/iva` | Cálculo de IVA |
-| POST | `/imss` | Cuotas IMSS/INFONAVIT |
-| POST | `/nomina` | Nómina individual con retenciones |
-| POST | `/finiquito` | Cálculo de finiquito |
-| POST | `/declaracion-anual/pf` | Declaración anual PF |
+| POST | `/isr/personas-fisicas` | ISR mensual PF (RESICO, sueldos, honorarios, arrendamiento) |
+| POST | `/isr/personas-morales` | ISR mensual PM — coeficiente de utilidad |
+| POST | `/iva` | IVA con proporcionalidad Art. 4-5 LIVA |
+| POST | `/imss` | Cuotas IMSS/INFONAVIT + CyV progresivo 2026 |
+| POST | `/nomina` | Nómina completa con subsidio al empleo 2026 |
+| POST | `/finiquito` | Finiquito y liquidación Art. 52, 162, 84 LFT |
+| POST | `/declaracion-anual/pf` | Declaración anual PF Art. 150-152 LISR |
+| POST | `/ieps` | IEPS por categoría (9 tipos) Art. 2 LIEPS |
 
 ### Empleados / Nómina masiva `/api/empleados`
 | Método | Ruta | Descripción |
@@ -224,12 +240,14 @@ Documentación interactiva: `http://localhost:8000/docs`
 ### Documentos `/api/documentos`
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/{cliente_id}/upload` | Sube facturas (XML/PDF) |
-| GET | `/{cliente_id}` | Lista documentos del cliente |
-| GET | `/{cliente_id}/resumen` | Resumen fiscal (ingresos/egresos/IVA neto) |
+| POST | `/{cliente_id}/upload` | Sube facturas (XML/PDF/imagen) — extrae datos + **verifica SAT automáticamente** |
+| GET | `/{cliente_id}` | Lista documentos con `sat_estado` (Vigente / Cancelado / No Encontrado) |
+| GET | `/{cliente_id}/resumen` | Resumen fiscal (ingresos/egresos/IVA neto/ISR retenido) |
 | DELETE | `/{doc_id}/documento` | Elimina documento |
-| GET | `/{cliente_id}/exportar-excel` | Exporta a Excel |
-| GET | `/{cliente_id}/diot` | Genera DIOT (JSON o TXT) |
+| GET | `/{cliente_id}/exportar-excel` | Exporta a Excel (hoja facturas + hoja resumen) |
+| GET | `/{cliente_id}/diot` | DIOT Art. 32-B LIVA (JSON o .txt formato SAT) |
+
+**Verificación SAT:** al subir un XML CFDI, el sistema llama `consultaqr.facturaelectronica.sat.gob.mx` con UUID + RFC emisor + RFC receptor + total. Guarda `sat_estado`, `sat_cancelable` y `sat_verificado_at`. Si el SAT tarda >10s, registra estado `error` sin bloquear el upload.
 
 ### SAT Descarga Masiva `/api/sat`
 | Método | Ruta | Descripción |
@@ -278,6 +296,7 @@ cd backend
 | `sat_download_jobs` | 004 | Jobs de descarga masiva con estado y progreso |
 | `cfdi_downloaded` | 004 | CFDIs descargados del SAT (deduplicados por UUID) |
 | `empleados` | 005 | Empleados con RFC, CURP, NSS, salario, contrato |
+| `documentos` +3 cols | **007** | `sat_estado`, `sat_cancelable`, `sat_verificado_at` — resultado de consulta SOAP SAT |
 
 ---
 
